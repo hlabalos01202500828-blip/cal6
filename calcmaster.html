@@ -1,0 +1,2359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>CalcMaster — Differential Calculus Mastery</title>
+<style>
+:root{
+  --bg:#030813;--bg2:#0a1628;--bg3:#0f1f3a;--bg4:#142340;
+  --border:rgba(34,211,238,.1);--border2:rgba(34,211,238,.28);
+  --primary:#22d3ee;--prim-dark:#0891b2;--prim-glow:rgba(34,211,238,.15);
+  --sec:#a78bfa;--sec-glow:rgba(167,139,250,.15);
+  --ok:#34d399;--ok-glow:rgba(52,211,153,.15);
+  --warn:#fbbf24;--danger:#f87171;--gold:#f59e0b;
+  --txt:#e2e8f0;--txt-dim:#94a3b8;--txt-muted:#475569;
+  --sw:256px;--r:12px;--rl:20px;
+  --shadow:0 4px 24px rgba(0,0,0,.5);
+  --tr:.2s cubic-bezier(.4,0,.2,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;font-size:16px}
+body{background:var(--bg);color:var(--txt);font-family:'Segoe UI',system-ui,-apple-system,sans-serif;line-height:1.6;overflow-x:hidden;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(34,211,238,.025)1px,transparent 1px),linear-gradient(90deg,rgba(34,211,238,.025)1px,transparent 1px);background-size:44px 44px;pointer-events:none;z-index:0}
+#app{display:flex;min-height:100vh;position:relative;z-index:1}
+
+/* SIDEBAR */
+#sb{width:var(--sw);min-height:100vh;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;left:0;top:0;bottom:0;z-index:100;transition:transform var(--tr);overflow-y:auto;overflow-x:hidden}
+.sb-logo{padding:22px 18px 14px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border)}
+.sb-logo-icon{width:38px;height:38px;background:linear-gradient(135deg,var(--prim-dark),var(--primary));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-family:'Courier New',monospace;font-weight:900;color:#000;flex-shrink:0}
+.sb-logo-t{font-size:1.05rem;font-weight:800;line-height:1.1}
+.sb-logo-s{font-size:.68rem;color:var(--txt-dim)}
+.sb-xp{padding:14px 18px;border-bottom:1px solid var(--border)}
+.sb-rank{font-size:.7rem;color:var(--primary);font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px}
+.xpbar{background:var(--bg3);border-radius:999px;height:5px;overflow:hidden}
+.xpbar-f{height:100%;background:linear-gradient(90deg,var(--prim-dark),var(--primary));border-radius:999px;transition:width .5s ease}
+.xp-lbl{font-size:.68rem;color:var(--txt-dim);margin-top:3px;display:flex;justify-content:space-between}
+.sb-nav{padding:10px 0;flex:1}
+.nav-sec{padding:6px 18px 2px;font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--txt-muted)}
+.nav-item{display:flex;align-items:center;gap:11px;padding:9px 18px;color:var(--txt-dim);cursor:pointer;transition:all var(--tr);position:relative;font-size:.88rem;user-select:none}
+.nav-item:hover{color:var(--txt);background:rgba(34,211,238,.04)}
+.nav-item.active{color:var(--primary);background:rgba(34,211,238,.07)}
+.nav-item.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:22px;background:var(--primary);border-radius:0 3px 3px 0}
+.nav-ic{font-size:1rem;width:20px;text-align:center;flex-shrink:0}
+.sb-streak{padding:14px 18px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.streak-n{font-size:1.05rem;font-weight:800;color:var(--warn)}
+.streak-lb{font-size:.68rem;color:var(--txt-dim)}
+
+/* MAIN */
+#main{margin-left:var(--sw);flex:1;padding:32px;min-height:100vh}
+.view{display:none;animation:fadeUp .3s ease}
+.view.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+/* COMPONENTS */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:22px;transition:all var(--tr)}
+.card:hover{border-color:var(--border2)}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border:none;border-radius:var(--r);font-size:.88rem;font-weight:600;cursor:pointer;transition:all var(--tr);text-decoration:none;user-select:none;white-space:nowrap;font-family:inherit}
+.btn-p{background:linear-gradient(135deg,var(--prim-dark),var(--primary));color:#000}
+.btn-p:hover{transform:translateY(-1px);box-shadow:0 4px 20px var(--prim-glow)}
+.btn-s{background:rgba(167,139,250,.13);color:var(--sec);border:1px solid rgba(167,139,250,.3)}
+.btn-s:hover{background:rgba(167,139,250,.22)}
+.btn-g{background:transparent;color:var(--txt-dim);border:1px solid var(--border)}
+.btn-g:hover{color:var(--txt);border-color:var(--border2)}
+.btn-ok{background:rgba(52,211,153,.12);color:var(--ok);border:1px solid rgba(52,211,153,.3)}
+.btn-ok:hover{background:rgba(52,211,153,.2)}
+.btn-sm{padding:5px 12px;font-size:.78rem}
+.btn-lg{padding:13px 26px;font-size:.98rem;border-radius:var(--rl)}
+.badge{display:inline-flex;align-items:center;padding:2px 9px;border-radius:999px;font-size:.7rem;font-weight:700;letter-spacing:.03em;text-transform:uppercase}
+.b-easy{background:rgba(52,211,153,.13);color:var(--ok);border:1px solid rgba(52,211,153,.28)}
+.b-medium{background:rgba(251,191,36,.13);color:var(--warn);border:1px solid rgba(251,191,36,.28)}
+.b-hard{background:rgba(248,113,113,.13);color:var(--danger);border:1px solid rgba(248,113,113,.28)}
+.b-challenge{background:rgba(167,139,250,.13);color:var(--sec);border:1px solid rgba(167,139,250,.28)}
+.ph{margin-bottom:28px}
+.pt{font-size:1.9rem;font-weight:800;background:linear-gradient(135deg,var(--txt),var(--primary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px}
+.ps{color:var(--txt-dim);font-size:.9rem}
+.sec-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.sec-t{font-size:1.25rem;font-weight:700}
+.prog{background:var(--bg3);border-radius:999px;height:7px;overflow:hidden}
+.prog-f{height:100%;border-radius:999px;transition:width .5s ease}
+.pc{background:linear-gradient(90deg,var(--prim-dark),var(--primary))}
+.pp{background:linear-gradient(90deg,#7c3aed,var(--sec))}
+.pg{background:linear-gradient(90deg,#059669,var(--ok))}
+.math{font-family:'Courier New',monospace;color:var(--primary);font-size:1em}
+.mblock{font-family:'Courier New',monospace;background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--primary);padding:11px 15px;border-radius:0 var(--r) var(--r) 0;color:var(--primary);margin:10px 0;font-size:.92rem;overflow-x:auto;white-space:pre-wrap}
+.fbox{background:linear-gradient(135deg,rgba(34,211,238,.05),rgba(167,139,250,.05));border:1px solid rgba(34,211,238,.2);border-radius:var(--r);padding:14px 18px;margin:10px 0;font-family:'Courier New',monospace;font-size:.95rem;color:var(--txt);text-align:center}
+.note{border-left:3px solid var(--warn);background:rgba(251,191,36,.06);border-radius:0 var(--r) var(--r) 0;padding:10px 14px;margin:10px 0;font-size:.86rem}
+.note.ni{border-left-color:var(--primary);background:rgba(34,211,238,.06)}
+.note.ns{border-left-color:var(--ok);background:rgba(52,211,153,.06)}
+.note.nd{border-left-color:var(--danger);background:rgba(248,113,113,.06)}
+.note-lb{font-weight:700;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--warn);margin-bottom:3px}
+.ni .note-lb{color:var(--primary)}.ns .note-lb{color:var(--ok)}.nd .note-lb{color:var(--danger)}
+.divider{height:1px;background:var(--border);margin:18px 0}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.ga{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+
+/* STATS ROW */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.sc{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:18px;display:flex;align-items:center;gap:14px;transition:all var(--tr)}
+.sc:hover{border-color:var(--border2);transform:translateY(-2px)}
+.si{width:46px;height:46px;border-radius:var(--r);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0}
+.si.c{background:rgba(34,211,238,.1)}.si.p{background:rgba(167,139,250,.1)}.si.g{background:rgba(52,211,153,.1)}.si.y{background:rgba(245,158,11,.1)}
+.sv{font-size:1.55rem;font-weight:800;line-height:1}
+.sl{font-size:.75rem;color:var(--txt-dim);margin-top:1px}
+
+/* DASHBOARD */
+.banner{background:linear-gradient(135deg,rgba(34,211,238,.07),rgba(167,139,250,.07));border:1px solid rgba(34,211,238,.13);border-radius:var(--rl);padding:26px 30px;margin-bottom:26px;position:relative;overflow:hidden}
+.banner::before{content:'∂';position:absolute;right:28px;top:-12px;font-size:8rem;color:rgba(34,211,238,.05);font-family:'Courier New',monospace;font-weight:900;pointer-events:none}
+.banner-t{font-size:1.5rem;font-weight:800;margin-bottom:5px}
+.banner-t span{color:var(--primary)}
+.tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+.tc{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:18px;cursor:pointer;transition:all var(--tr);position:relative;overflow:hidden}
+.tc::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--tc-color,var(--primary)),transparent);border-radius:var(--rl) var(--rl) 0 0}
+.tc:hover{border-color:var(--border2);transform:translateY(-3px);box-shadow:0 8px 28px rgba(0,0,0,.4)}
+.tc-n{font-size:.68rem;color:var(--txt-muted);font-weight:600;margin-bottom:6px;font-family:'Courier New',monospace}
+.tc-t{font-size:.86rem;font-weight:700;line-height:1.3;margin-bottom:10px}
+.tc-ic{font-size:1.6rem;margin-bottom:8px;display:block}
+.tc-p{margin-top:10px}
+.tc-pl{display:flex;justify-content:space-between;font-size:.68rem;color:var(--txt-dim);margin-bottom:5px}
+
+/* TOPIC DETAIL */
+.tdh{display:flex;align-items:flex-start;gap:18px;margin-bottom:28px;padding:24px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl)}
+.tdh-ic{width:60px;height:60px;border-radius:var(--rl);background:linear-gradient(135deg,rgba(34,211,238,.13),rgba(167,139,250,.13));border:1px solid rgba(34,211,238,.2);display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-family:'Courier New',monospace;font-weight:900;color:var(--primary);flex-shrink:0}
+.tdh-n{font-size:.75rem;color:var(--primary);font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px}
+.tdh-t{font-size:1.4rem;font-weight:800;margin-bottom:6px}
+.tdh-d{color:var(--txt-dim);font-size:.88rem;line-height:1.7}
+.tabs{display:flex;gap:7px;overflow-x:auto;padding-bottom:6px;margin-bottom:20px;scrollbar-width:thin}
+.tab{flex-shrink:0;padding:7px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);color:var(--txt-dim);cursor:pointer;transition:all var(--tr);font-size:.82rem;font-weight:500;white-space:nowrap}
+.tab:hover{color:var(--txt);border-color:var(--border2)}
+.tab.active{background:rgba(34,211,238,.09);border-color:rgba(34,211,238,.3);color:var(--primary)}
+.cs-t{font-size:1rem;font-weight:700;color:var(--txt);margin-bottom:10px;display:flex;align-items:center;gap:7px}
+.cs-t::before{content:'';display:inline-block;width:3px;height:17px;background:var(--primary);border-radius:2px}
+.fl{list-style:none}
+.fi{display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid var(--border);font-size:.88rem}
+.fi:last-child{border-bottom:none}
+.fn{color:var(--txt-muted);font-size:.75rem;width:18px;flex-shrink:0;font-family:'Courier New',monospace}
+.fe{font-family:'Courier New',monospace;color:var(--primary);flex:1;font-size:.92rem}
+.fd{color:var(--txt-dim);font-size:.8rem}
+.ex{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:18px;margin:14px 0}
+.ex-lb{font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--sec);margin-bottom:7px;display:flex;align-items:center;gap:5px}
+.ex-p{font-size:.92rem;margin-bottom:10px;padding-bottom:10px;border-bottom:1px dashed var(--border)}
+.steps{list-style:none}
+.step{display:flex;align-items:flex-start;gap:11px;padding:7px 0;font-size:.88rem;line-height:1.6}
+.sn{width:22px;height:22px;background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.22);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;color:var(--primary);flex-shrink:0;margin-top:1px}
+.sc2{flex:1;color:var(--txt-dim)}
+.ans{background:rgba(52,211,153,.07);border:1px solid rgba(52,211,153,.2);border-radius:var(--r);padding:11px 15px;margin-top:10px;display:flex;align-items:center;gap:11px}
+.ans-lb{font-size:.75rem;font-weight:700;color:var(--ok);text-transform:uppercase;letter-spacing:.06em}
+.ans-v{font-family:'Courier New',monospace;color:var(--txt);font-size:.9rem}
+.coll-btn{display:flex;align-items:center;justify-content:space-between;width:100%;padding:13px 0;background:none;border:none;border-bottom:1px solid var(--border);color:var(--txt);font-size:.93rem;font-weight:600;cursor:pointer;font-family:inherit;text-align:left;transition:color var(--tr)}
+.coll-btn:hover{color:var(--primary)}
+.coll-ic{transition:transform var(--tr);font-size:.78rem;color:var(--txt-dim)}
+.coll-btn.open .coll-ic{transform:rotate(180deg)}
+.coll-body{overflow:hidden;max-height:0;transition:max-height .35s ease}
+.coll-body.open{max-height:9000px}
+.coll-in{padding:14px 0}
+
+/* PRACTICE */
+.pfilters{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
+.fb{padding:5px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);color:var(--txt-dim);cursor:pointer;font-size:.82rem;font-weight:500;transition:all var(--tr);font-family:inherit}
+.fb:hover{color:var(--txt)}
+.fb.fa{background:rgba(34,211,238,.09);border-color:rgba(34,211,238,.28);color:var(--primary)}
+.fb.fe2{background:rgba(52,211,153,.09);border-color:rgba(52,211,153,.28);color:var(--ok)}
+.fb.fm{background:rgba(251,191,36,.09);border-color:rgba(251,191,36,.28);color:var(--warn)}
+.fb.fh{background:rgba(248,113,113,.09);border-color:rgba(248,113,113,.28);color:var(--danger)}
+.fb.fc2{background:rgba(167,139,250,.09);border-color:rgba(167,139,250,.28);color:var(--sec)}
+.plist{display:flex;flex-direction:column;gap:13px}
+.pc3{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;transition:border-color var(--tr)}
+.pc3:hover{border-color:var(--border2)}
+.ph3{padding:14px 18px;display:flex;align-items:center;gap:11px;cursor:pointer}
+.pn{font-size:.75rem;color:var(--txt-muted);font-family:'Courier New',monospace;flex-shrink:0;min-width:30px}
+.pt2{flex:1;font-size:.9rem;line-height:1.5}
+.ptog{color:var(--txt-muted);font-size:.78rem;transition:transform var(--tr)}
+.pc3.open .ptog{transform:rotate(180deg)}
+.pb2{display:none;padding:0 18px 18px;border-top:1px solid var(--border)}
+.pc3.open .pb2{display:block}
+.hint-btn,.sol-btn{padding:7px 14px;border-radius:var(--r);border:1px dashed;background:none;cursor:pointer;font-size:.82rem;font-weight:600;transition:all var(--tr);font-family:inherit;margin-top:14px;display:inline-flex;align-items:center;gap:6px}
+.hint-btn{border-color:rgba(251,191,36,.4);color:var(--warn)}
+.hint-btn:hover{background:rgba(251,191,36,.07)}
+.sol-btn{border-color:rgba(34,211,238,.4);color:var(--primary);margin-left:8px}
+.sol-btn:hover{background:rgba(34,211,238,.07)}
+.hint-body,.sol-body{display:none;margin-top:12px;animation:fadeUp .2s ease}
+.hint-body.show,.sol-body.show{display:block}
+
+/* QUIZ */
+.qwrap{max-width:660px;margin:0 auto}
+.qsetup{text-align:center;padding:32px 16px}
+.qsetup-t{font-size:1.8rem;font-weight:800;margin-bottom:10px}
+.qtg{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:20px 0;text-align:left}
+.qtb{padding:11px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);color:var(--txt-dim);cursor:pointer;transition:all var(--tr);font-size:.8rem;font-weight:500;font-family:inherit;text-align:left;line-height:1.4}
+.qtb:hover{color:var(--txt);border-color:var(--border2)}
+.qtb.qs{background:rgba(34,211,238,.09);border-color:rgba(34,211,238,.28);color:var(--primary)}
+.qpb{background:var(--bg3);height:5px;border-radius:999px;margin-bottom:20px;overflow:hidden}
+.qpbf{height:100%;background:linear-gradient(90deg,var(--prim-dark),var(--primary));border-radius:999px;transition:width .3s ease}
+.qmeta{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;font-size:.83rem;color:var(--txt-dim)}
+.qtimer{font-family:'Courier New',monospace;font-size:1.05rem;font-weight:700;color:var(--txt);display:flex;align-items:center;gap:5px}
+.qtimer.warn{color:var(--warn)}.qtimer.dng{color:var(--danger);animation:pulse 1s infinite}
+.qq{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:24px;margin-bottom:16px}
+.qq-n{font-size:.75rem;color:var(--txt-muted);margin-bottom:10px;font-weight:600}
+.qq-t{font-size:1rem;line-height:1.7}
+.qcs{display:flex;flex-direction:column;gap:9px}
+.qcb{padding:13px 18px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);color:var(--txt);cursor:pointer;transition:all var(--tr);text-align:left;font-size:.9rem;font-family:inherit;display:flex;align-items:center;gap:12px}
+.qcb:hover:not(:disabled){border-color:rgba(34,211,238,.28);background:rgba(34,211,238,.04)}
+.qcb:disabled{cursor:default}
+.qcb.correct{background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.35);color:var(--ok)}
+.qcb.wrong{background:rgba(248,113,113,.1);border-color:rgba(248,113,113,.35);color:var(--danger)}
+.cl{width:26px;height:26px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0}
+.qcb.correct .cl{background:var(--ok);border-color:var(--ok);color:#000}
+.qcb.wrong .cl{background:var(--danger);border-color:var(--danger);color:#000}
+.qfb{padding:14px 18px;border-radius:var(--r);margin-top:14px;display:none;animation:fadeUp .2s ease}
+.qfb.show{display:block}
+.qfb.correct{background:rgba(52,211,153,.07);border:1px solid rgba(52,211,153,.18)}
+.qfb.wrong{background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.18)}
+.qfb-h{font-weight:700;margin-bottom:6px;font-size:.93rem}
+.qfb-h.correct{color:var(--ok)}.qfb-h.wrong{color:var(--danger)}
+.qctrl{display:flex;gap:10px;justify-content:flex-end;margin-top:14px}
+.qres{text-align:center;padding:36px 16px;animation:fadeUp .4s ease}
+.rs{font-size:3.5rem;font-weight:800;line-height:1;margin:18px 0;background:linear-gradient(135deg,var(--primary),var(--sec));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.rg{font-size:1rem;color:var(--txt-dim);margin-bottom:20px}
+.rstats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:20px 0}
+.rst{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:14px;text-align:center}
+.rst-v{font-size:1.3rem;font-weight:800}
+.rst-l{font-size:.75rem;color:var(--txt-dim)}
+.combo{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:350;pointer-events:none;animation:comboAnim .8s ease forwards}
+@keyframes comboAnim{0%{transform:translate(-50%,-50%)scale(0);opacity:0}30%{transform:translate(-50%,-50%)scale(1.3);opacity:1}70%{transform:translate(-50%,-70%)scale(1);opacity:1}100%{transform:translate(-50%,-90%)scale(.9);opacity:0}}
+.combo-inner{background:linear-gradient(135deg,var(--gold),#f97316);color:#000;font-size:1.1rem;font-weight:900;padding:10px 22px;border-radius:999px;box-shadow:0 4px 20px rgba(245,158,11,.4)}
+
+/* FLASHCARDS */
+.fcwrap{max-width:580px;margin:0 auto}
+.fdecks{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.fdb{padding:7px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);color:var(--txt-dim);cursor:pointer;font-size:.82rem;font-weight:500;transition:all var(--tr);font-family:inherit}
+.fdb:hover{color:var(--txt);border-color:var(--border2)}
+.fdb.active{background:rgba(34,211,238,.09);border-color:rgba(34,211,238,.28);color:var(--primary)}
+.fcc{display:flex;justify-content:center;align-items:center;gap:8px;color:var(--txt-dim);font-size:.86rem;margin-bottom:18px}
+.fpwrap{perspective:1200px;height:270px;cursor:pointer;margin-bottom:22px}
+.finner{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .6s cubic-bezier(.4,0,.2,1)}
+.fpwrap.flipped .finner{transform:rotateY(180deg)}
+.fface{position:absolute;inset:0;backface-visibility:hidden;border-radius:var(--rl);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px;text-align:center}
+.ffront{background:linear-gradient(135deg,var(--bg2),var(--bg3));border:1px solid var(--border)}
+.fback{background:linear-gradient(135deg,rgba(34,211,238,.05),rgba(167,139,250,.06));border:1px solid rgba(34,211,238,.18);transform:rotateY(180deg)}
+.fc-cat{font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--txt-muted);margin-bottom:14px}
+.fc-ct{font-family:'Courier New',monospace;font-size:1.2rem;color:var(--primary);line-height:1.5}
+.ffront .fc-ct{color:var(--txt);font-size:1rem}
+.fc-note{font-size:.75rem;color:var(--txt-muted);margin-top:18px}
+.factions{display:flex;gap:11px;justify-content:center}
+.fab2{flex:1;padding:11px;border-radius:var(--r);border:1px solid;background:none;font-size:.88rem;font-weight:700;cursor:pointer;transition:all var(--tr);font-family:inherit;max-width:190px}
+.fknown{border-color:rgba(52,211,153,.3);color:var(--ok)}.fknown:hover{background:rgba(52,211,153,.09)}
+.frev{border-color:rgba(251,191,36,.3);color:var(--warn)}.frev:hover{background:rgba(251,191,36,.09)}
+.fprow{display:flex;gap:16px;margin-top:18px;justify-content:center}
+.fpi{text-align:center;font-size:.8rem}
+.fpv{font-size:1.15rem;font-weight:800}
+
+/* FORMULA SHEET */
+.fsearch{position:relative;margin-bottom:20px}
+.fsearch input{width:100%;padding:13px 18px 13px 44px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);color:var(--txt);font-size:.92rem;font-family:inherit;transition:all var(--tr);outline:none}
+.fsearch input:focus{border-color:rgba(34,211,238,.38);box-shadow:0 0 0 3px rgba(34,211,238,.07)}
+.fsearch input::placeholder{color:var(--txt-muted)}
+.fsearch-ic{position:absolute;left:15px;top:50%;transform:translateY(-50%);color:var(--txt-muted);font-size:1rem;pointer-events:none}
+.fcats{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:20px}
+.fcb{padding:5px 13px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);color:var(--txt-dim);cursor:pointer;font-size:.8rem;font-weight:500;transition:all var(--tr);font-family:inherit}
+.fcb:hover{color:var(--txt)}.fcb.active{background:rgba(34,211,238,.09);border-color:rgba(34,211,238,.28);color:var(--primary)}
+.fgroup{margin-bottom:26px}
+.fg-t{font-size:.75rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--primary);margin-bottom:10px;padding-bottom:7px;border-bottom:1px solid var(--border)}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:9px}
+.fcard{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;display:flex;align-items:center;gap:11px;transition:all var(--tr)}
+.fcard:hover{border-color:var(--border2)}
+.fcard.starred{border-color:rgba(245,158,11,.28);background:rgba(245,158,11,.04)}
+.fe2{flex:1}
+.fe2-e{font-family:'Courier New',monospace;font-size:.88rem;color:var(--primary)}
+.fe2-d{font-size:.75rem;color:var(--txt-dim);margin-top:1px}
+.fstar{background:none;border:none;cursor:pointer;color:var(--txt-muted);font-size:.95rem;transition:all var(--tr);padding:3px}
+.fstar:hover{color:var(--gold)}
+.fcard.starred .fstar{color:var(--gold)}
+.fcopy{background:none;border:none;cursor:pointer;color:var(--txt-muted);font-size:.75rem;transition:all var(--tr);padding:3px 7px;border-radius:5px}
+.fcopy:hover{color:var(--primary);background:rgba(34,211,238,.07)}
+
+/* STATS */
+.ach-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}
+.ach{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:18px 14px;text-align:center;transition:all var(--tr)}
+.ach.earned{border-color:rgba(245,158,11,.28);background:rgba(245,158,11,.04)}
+.ach:not(.earned){opacity:.45}
+.ach-ic{font-size:1.9rem;margin-bottom:8px}
+.ach-n{font-size:.83rem;font-weight:700;margin-bottom:3px}
+.ach-d{font-size:.7rem;color:var(--txt-dim)}
+.hmap{display:grid;grid-template-columns:repeat(52,1fr);gap:2px;margin-top:10px}
+.hmc{aspect-ratio:1;border-radius:2px;background:var(--bg3)}
+.hmc.l1{background:rgba(34,211,238,.22)}.hmc.l2{background:rgba(34,211,238,.45)}.hmc.l3{background:rgba(34,211,238,.7)}.hmc.l4{background:var(--primary)}
+
+/* MODALS / TOASTS */
+.moverlay{position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(4px);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .2s}
+.moverlay.show{opacity:1;pointer-events:all}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--rl);padding:28px;max-width:460px;width:100%;transform:scale(.95);transition:transform .2s}
+.moverlay.show .modal{transform:scale(1)}
+.modal-t{font-size:1.3rem;font-weight:800;margin-bottom:7px}
+.mcl{float:right;background:none;border:none;color:var(--txt-dim);cursor:pointer;font-size:1.1rem;transition:color var(--tr)}
+.mcl:hover{color:var(--txt)}
+.tcon{position:fixed;bottom:22px;right:22px;z-index:300;display:flex;flex-direction:column;gap:7px}
+.toast{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);padding:13px 18px;display:flex;align-items:center;gap:11px;min-width:270px;max-width:340px;box-shadow:var(--shadow);animation:slideIn .3s ease}
+.toast.removing{animation:slideOut .3s ease forwards}
+.toast-ic{font-size:1.15rem}.toast-t{font-weight:700;font-size:.88rem;margin-bottom:1px}.toast-m{font-size:.78rem;color:var(--txt-dim)}
+.toast.ok2{border-color:rgba(52,211,153,.28)}.toast.err{border-color:rgba(248,113,113,.28)}.toast.info{border-color:rgba(34,211,238,.28)}.toast.xp2{border-color:rgba(245,158,11,.28);background:rgba(245,158,11,.04)}
+@keyframes slideIn{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes slideOut{from{transform:translateX(0);opacity:1}to{transform:translateX(120%);opacity:0}}
+.luo{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:500;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s}
+.luo.show{opacity:1;pointer-events:all}
+.lum{text-align:center;padding:40px;animation:luPop .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes luPop{from{transform:scale(.5);opacity:0}to{transform:scale(1);opacity:1}}
+.lu-ic{font-size:4.5rem;margin-bottom:18px;animation:spin .8s ease}
+@keyframes spin{from{transform:rotate(0)scale(0)}to{transform:rotate(360deg)scale(1)}}
+.lu-t{font-size:2.2rem;font-weight:900;color:var(--gold);margin-bottom:6px}
+.lu-r{font-size:1.1rem;color:var(--txt-dim);margin-bottom:20px}
+.conf{position:fixed;pointer-events:none;z-index:600;border-radius:2px;animation:confFall 2s linear forwards}
+@keyframes confFall{0%{transform:translateY(-20px)rotate(0);opacity:1}100%{transform:translateY(100vh)rotate(720deg);opacity:0}}
+
+/* MOBILE NAV */
+#mnav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--border);z-index:100;padding:7px 0}
+.mni{display:flex;justify-content:space-around}
+.mn-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px 10px;color:var(--txt-muted);cursor:pointer;transition:color var(--tr);font-size:.62rem;font-weight:600}
+.mn-item.active{color:var(--primary)}
+.mn-ic{font-size:1.2rem}
+#mtog{display:none;position:fixed;top:14px;left:14px;z-index:150;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);width:38px;height:38px;align-items:center;justify-content:center;cursor:pointer;font-size:1.1rem;color:var(--txt)}
+
+/* ANIMATIONS & UTILS */
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--bg3);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--txt-muted)}
+.hidden{display:none!important}
+.text-p{color:var(--primary)}.text-s{color:var(--sec)}.text-ok{color:var(--ok)}.text-w{color:var(--warn)}.text-d{color:var(--danger)}.text-dim{color:var(--txt-dim)}
+.mt8{margin-top:8px}.mt12{margin-top:12px}.mt16{margin-top:16px}.mt20{margin-top:20px}.mt24{margin-top:24px}.mb8{margin-bottom:8px}.mb12{margin-bottom:12px}.mb16{margin-bottom:16px}.mb20{margin-bottom:20px}.mb24{margin-bottom:24px}
+.flex{display:flex}.gap8{gap:8px}.gap12{gap:12px}.items-c{align-items:center}.j-btw{justify-content:space-between}
+.mono{font-family:'Courier New',monospace}
+canvas{display:block;max-width:100%}
+.gcont{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin:14px 0}
+.gt{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--txt-dim);padding:9px 14px;border-bottom:1px solid var(--border)}
+
+/* Responsive */
+@media(max-width:1100px){.stats-row{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:1fr 1fr}}
+@media(max-width:768px){
+  #sb{transform:translateX(-100%)}#sb.open{transform:translateX(0)}
+  #main{margin-left:0;padding:70px 14px 80px}
+  .stats-row{grid-template-columns:1fr 1fr}.g2,.g3,.g4{grid-template-columns:1fr}
+  .pt{font-size:1.5rem}.qtg{grid-template-columns:1fr 1fr}
+  #mnav{display:block}#mtog{display:flex}
+  .banner::before{display:none}
+}
+</style>
+</head>
+<body>
+<button id="mtog" onclick="toggleSidebar()">☰</button>
+
+<div id="app">
+<!-- SIDEBAR -->
+<div id="sb">
+  <div class="sb-logo">
+    <div class="sb-logo-icon">∂</div>
+    <div><div class="sb-logo-t">CalcMaster</div><div class="sb-logo-s">Differential Calculus</div></div>
+  </div>
+  <div class="sb-xp">
+    <div class="sb-rank" id="sb-rank">Beginner Analyst</div>
+    <div class="xpbar"><div class="xpbar-f" id="sb-xpbar" style="width:0%"></div></div>
+    <div class="xp-lbl"><span id="sb-xp-now">0 XP</span><span id="sb-xp-next">100 XP</span></div>
+  </div>
+  <nav class="sb-nav">
+    <div class="nav-sec">Main</div>
+    <div class="nav-item active" onclick="nav('dashboard')"><span class="nav-ic">🏠</span>Dashboard</div>
+    <div class="nav-item" onclick="nav('topics')"><span class="nav-ic">📚</span>All Topics</div>
+    <div class="nav-item" onclick="nav('practice')"><span class="nav-ic">✏️</span>Practice</div>
+    <div class="nav-sec">Study Tools</div>
+    <div class="nav-item" onclick="nav('quiz')"><span class="nav-ic">🧠</span>Quiz Mode</div>
+    <div class="nav-item" onclick="nav('flashcards')"><span class="nav-ic">🃏</span>Flashcards</div>
+    <div class="nav-item" onclick="nav('formulas')"><span class="nav-ic">📐</span>Formula Sheet</div>
+    <div class="nav-sec">Progress</div>
+    <div class="nav-item" onclick="nav('stats')"><span class="nav-ic">📊</span>My Stats</div>
+  </nav>
+  <div class="sb-streak">
+    <span style="font-size:1.4rem">🔥</span>
+    <div><div class="streak-n" id="sb-streak">0</div><div class="streak-lb">Day Streak</div></div>
+  </div>
+</div>
+
+<!-- MOBILE NAV -->
+<div id="mnav">
+  <div class="mni">
+    <div class="mn-item active" onclick="nav('dashboard')"><span class="mn-ic">🏠</span>Home</div>
+    <div class="mn-item" onclick="nav('topics')"><span class="mn-ic">📚</span>Topics</div>
+    <div class="mn-item" onclick="nav('quiz')"><span class="mn-ic">🧠</span>Quiz</div>
+    <div class="mn-item" onclick="nav('flashcards')"><span class="mn-ic">🃏</span>Cards</div>
+    <div class="mn-item" onclick="nav('formulas')"><span class="mn-ic">📐</span>Formulas</div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+
+<!-- DASHBOARD -->
+<div id="view-dashboard" class="view active">
+  <div class="banner">
+    <div class="banner-t">Welcome, <span id="dash-greet">Scholar</span>! 👋</div>
+    <div style="color:var(--txt-dim);font-size:.9rem;margin-bottom:16px" id="dash-mot">Ready to master differential calculus? Let's go! 🚀</div>
+    <div style="display:flex;gap:9px;flex-wrap:wrap">
+      <button class="btn btn-p" onclick="nav('quiz')">▶ Quick Quiz</button>
+      <button class="btn btn-g" onclick="nav('topics')">📚 Browse Topics</button>
+      <button class="btn btn-s" onclick="dailyChallenge()">⚡ Daily Challenge</button>
+    </div>
+  </div>
+  <div class="stats-row" id="dash-stats"></div>
+  <div class="g2" id="dash-grid">
+    <div>
+      <div class="sec-h"><div><div class="sec-t">Topics</div><div style="font-size:.8rem;color:var(--txt-dim)">12 core topics</div></div><button class="btn btn-g btn-sm" onclick="nav('topics')">View All →</button></div>
+      <div class="tgrid" id="dash-tgrid"></div>
+    </div>
+    <div>
+      <div class="sec-h mb16"><div class="sec-t">Quick Stats</div></div>
+      <div id="dash-qstats"></div>
+      <div class="mt24">
+        <div class="sec-h mb12"><div class="sec-t">Achievements</div></div>
+        <div id="dash-ach"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ALL TOPICS -->
+<div id="view-topics" class="view">
+  <div class="ph"><div class="pt">All Topics</div><div class="ps">12 comprehensive differential calculus topics — click any to explore</div></div>
+  <div id="topics-grid"></div>
+</div>
+
+<!-- TOPIC DETAIL -->
+<div id="view-topic-detail" class="view">
+  <button class="btn btn-g btn-sm mb16" onclick="nav('topics')">← Back to Topics</button>
+  <div id="topic-detail-content"></div>
+</div>
+
+<!-- PRACTICE -->
+<div id="view-practice" class="view">
+  <div class="ph flex j-btw items-c" style="flex-wrap:wrap;gap:12px">
+    <div><div class="pt">Practice Problems</div><div class="ps" id="prac-sub">Step-by-step solutions included</div></div>
+    <button class="btn btn-g btn-sm" id="prac-back" onclick="nav('topics')">← Back</button>
+  </div>
+  <div class="pfilters" id="prac-filters">
+    <span style="color:var(--txt-dim);font-size:.82rem;font-weight:600">Filter:</span>
+    <button class="fb fa" onclick="filterP('all',this)">All</button>
+    <button class="fb" onclick="filterP('easy',this)">🟢 Easy</button>
+    <button class="fb" onclick="filterP('medium',this)">🟡 Medium</button>
+    <button class="fb" onclick="filterP('hard',this)">🔴 Hard</button>
+    <button class="fb" onclick="filterP('challenge',this)">⚡ Challenge</button>
+  </div>
+  <div id="prac-list"></div>
+</div>
+
+<!-- QUIZ -->
+<div id="view-quiz" class="view">
+  <div class="qwrap" id="quiz-inner"></div>
+</div>
+
+<!-- FLASHCARDS -->
+<div id="view-flashcards" class="view">
+  <div class="ph"><div class="pt">Flashcards</div><div class="ps">Memorize formulas with spaced repetition</div></div>
+  <div class="fcwrap">
+    <div class="fdecks" id="fc-decks"></div>
+    <div class="fcc" id="fc-ctr">Select a deck to begin</div>
+    <div class="fpwrap" id="fpwrap" onclick="flipCard()">
+      <div class="finner" id="finner">
+        <div class="fface ffront">
+          <div class="fc-cat" id="fc-fcat">—</div>
+          <div class="fc-ct" id="fc-ftxt">Choose a deck above to start!</div>
+          <div class="fc-note" id="fc-fnote">Click to flip</div>
+        </div>
+        <div class="fface fback">
+          <div class="fc-cat" id="fc-bcat">Answer</div>
+          <div class="fc-ct" id="fc-btxt">—</div>
+        </div>
+      </div>
+    </div>
+    <div class="factions">
+      <button class="fab2 frev" onclick="fcAct('review')">🔄 Review Again</button>
+      <button class="fab2 fknown" onclick="fcAct('known')">✓ Got It!</button>
+    </div>
+    <div class="fprow">
+      <div class="fpi"><div class="fpv text-ok" id="fc-known">0</div><div>Known</div></div>
+      <div class="fpi"><div class="fpv text-w" id="fc-review">0</div><div>Review</div></div>
+      <div class="fpi"><div class="fpv text-dim" id="fc-rem">0</div><div>Remaining</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- FORMULA SHEET -->
+<div id="view-formulas" class="view">
+  <div class="ph"><div class="pt">Formula Sheet</div><div class="ps">Complete reference — search, star, and copy any formula</div></div>
+  <div class="fsearch"><span class="fsearch-ic">🔍</span><input type="text" id="fsearch-in" placeholder="Search formulas, topics, rules..." oninput="searchFormulas(this.value)"></div>
+  <div class="fcats" id="fcats"></div>
+  <div id="formula-content"></div>
+</div>
+
+<!-- STATS -->
+<div id="view-stats" class="view">
+  <div class="ph"><div class="pt">My Progress</div><div class="ps">Track your calculus mastery journey</div></div>
+  <div id="stats-content"></div>
+</div>
+
+</div><!-- /main -->
+</div><!-- /app -->
+
+<!-- OVERLAYS -->
+<div class="moverlay" id="moverlay" onclick="closeMod(event)">
+  <div class="modal" id="modal-body"><button class="mcl" onclick="closeMod()">✕</button><div id="modal-ct"></div></div>
+</div>
+<div class="tcon" id="tcon"></div>
+<div class="luo" id="luo" onclick="closeLU()">
+  <div class="lum">
+    <div class="lu-ic">⭐</div>
+    <div class="lu-t">LEVEL UP!</div>
+    <div class="lu-r" id="lu-rank">Formula Apprentice</div>
+    <div style="color:var(--txt-dim);font-size:.88rem;margin-bottom:20px">You've reached a new rank!</div>
+    <button class="btn btn-p btn-lg" onclick="closeLU()">Continue! 🚀</button>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// TOPIC DATA
+// ============================================================
+const TOPICS=[
+{id:'log-diff',n:1,title:'Differentiation of Logarithmic Functions',ic:'㏒',color:'#22d3ee',
+desc:'Master derivatives of logarithmic functions including natural and general logarithms, with chain rule applications.',
+subs:[{id:'nl',t:'Natural Log Derivatives'},{id:'gl',t:'General Log Derivatives'},{id:'chain',t:'Chain Rule with Logs'},{id:'comp',t:'Composite Log Functions'},{id:'impl',t:'Implicit Diff with Logs'}],
+formulas:[
+  {e:'d/dx[ln x] = 1/x',d:'Natural log (x > 0)'},
+  {e:'d/dx[ln|x|] = 1/x',d:'For all x ≠ 0'},
+  {e:'d/dx[log_a x] = 1/(x·ln a)',d:'Log base a (a>0, a≠1)'},
+  {e:'d/dx[ln f(x)] = f\'(x)/f(x)',d:'Chain rule form'},
+  {e:'d/dx[log_a f(x)] = f\'(x)/[f(x)·ln a]',d:'Chain rule, base a'}
+],
+explain:`The derivative d/dx[ln x] = 1/x is one of the most fundamental results in calculus. Since ln x is the inverse of eˣ, we can derive this using implicit differentiation: if y = ln x then eʸ = x, so eʸ·(dy/dx) = 1, giving dy/dx = 1/eʸ = 1/x.
+
+<strong>Key Chain Rule Application:</strong> d/dx[ln f(x)] = f'(x)/f(x). This elegant ratio is the <em>logarithmic derivative</em> of f.
+
+<strong>Logarithm Properties — simplify BEFORE differentiating:</strong>
+• ln(xy) = ln x + ln y
+• ln(x/y) = ln x − ln y
+• ln(xⁿ) = n·ln x`,
+examples:[
+{p:'Find dy/dx if y = ln(3x² + 1)',steps:['Identify u = 3x²+1 (argument of ln)','Apply chain rule: dy/dx = u\'/u','u\' = 6x','dy/dx = 6x/(3x²+1)'],a:'dy/dx = 6x/(3x²+1)'},
+{p:'Differentiate y = ln(sin x)',steps:['u = sin x, u\' = cos x','dy/dx = cos x / sin x','= cot x'],a:'dy/dx = cot x'},
+{p:'Differentiate y = ln[(x+1)²(x²+3)³]',steps:['Expand: y = 2·ln(x+1) + 3·ln(x²+3)','Differentiate: dy/dx = 2/(x+1) + 6x/(x²+3)'],a:'dy/dx = 2/(x+1) + 6x/(x²+3)'}
+],
+mistakes:['Forgetting chain rule: d/dx[ln(f(x))] ≠ 1/x, must be f\'(x)/f(x)','Wrong base: d/dx[log₁₀x] = 1/(x·ln10), NOT 1/x','Not simplifying logs of products/powers before differentiating'],
+tricks:['Derivative of ln(anything) = (derivative of inside)/(inside itself)','Expand ln(product/quotient/power) BEFORE differentiating — much easier!','For log_a(x): remember to divide by ln(a)']
+},
+{id:'log-technique',n:2,title:'Logarithmic Differentiation',ic:'🔢',color:'#a78bfa',
+desc:'Differentiate complex functions by taking logarithms — essential for variable exponents and large products.',
+subs:[{id:'ve',t:'Variable Exponent Functions'},{id:'method',t:'The Log Differentiation Method'},{id:'prod',t:'Complex Products/Quotients'},{id:'pfn',t:'Power Functions f(x)^g(x)'}],
+formulas:[
+  {e:'y = [f(x)]^[g(x)] → ln y = g(x)·ln f(x)',d:'Setup step'},
+  {e:'(1/y)·y\' = g\'·ln f + g·f\'/f',d:'After implicit diff'},
+  {e:'y\' = y·[g\'·ln f + g·f\'/f]',d:'Solving for y\''},
+  {e:'d/dx[xˣ] = xˣ(ln x + 1)',d:'Classic result'},
+  {e:'d/dx[x^(1/x)] = x^(1/x)·(1−ln x)/x²',d:'Another special case'}
+],
+explain:`Use logarithmic differentiation when:
+• y = [f(x)]^[g(x)] — both base and exponent are functions of x
+• The function is a messy product/quotient of many factors
+• Direct differentiation would be extremely complex
+
+<strong>The Method (4 steps):</strong>
+1. Take ln of both sides: ln y = ln[f(x)]
+2. Simplify using log properties
+3. Differentiate both sides (left side gives (1/y)·y')
+4. Solve for y' and substitute back the original y
+
+<strong>Why it works:</strong> ln converts products → sums, quotients → differences, powers → coefficients. This transforms complicated expressions into something differentiable term by term.`,
+examples:[
+{p:'Find dy/dx if y = xˣ',steps:['Take ln: ln y = x·ln x','Diff both sides: (1/y)·y\' = ln x + x·(1/x) = ln x + 1','Multiply by y: y\' = xˣ(ln x + 1)'],a:'y\' = xˣ(ln x + 1)'},
+{p:'Find dy/dx if y = (sin x)^x',steps:['ln y = x·ln(sin x)','(1/y)·y\' = ln(sin x) + x·(cos x/sin x)','y\' = (sin x)^x·[ln(sin x) + x·cot x]'],a:'y\' = (sin x)^x[ln(sin x) + x·cot x]'},
+{p:'Differentiate y = ∛[x(x+1)/(x+2)²]',steps:['ln y = (1/3)[ln x + ln(x+1) − 2·ln(x+2)]','(1/y)y\' = (1/3)[1/x + 1/(x+1) − 2/(x+2)]','y\' = (y/3)[1/x + 1/(x+1) − 2/(x+2)]'],a:'y\' = (∛[x(x+1)/(x+2)²]/3)·[1/x + 1/(x+1) − 2/(x+2)]'}
+],
+mistakes:['d/dx[ln y] = (1/y)y\', NOT just 1/y — the chain rule applies!','Not substituting back y at the end','Missing terms when expanding ln of a product'],
+tricks:['The answer always has form: y × [extra terms from log differentiation]','Works brilliantly for products of many factors — each becomes a simple term','Ask: is this a [variable]^[variable] form? If yes, log diff is likely needed']
+},
+{id:'exp-diff',n:3,title:'Differentiation of Exponential Functions',ic:'eˣ',color:'#34d399',
+desc:'Master derivatives of exponential functions — including the remarkable eˣ which is its own derivative.',
+subs:[{id:'ne',t:'Natural Exponential eˣ'},{id:'ge',t:'General Exponential aˣ'},{id:'chain',t:'Chain Rule with Exponentials'},{id:'comp',t:'Composite Exponential Functions'}],
+formulas:[
+  {e:'d/dx[eˣ] = eˣ',d:'The natural exp is its own derivative!'},
+  {e:'d/dx[e^u] = e^u · u\'',d:'Chain rule form'},
+  {e:'d/dx[aˣ] = aˣ · ln a',d:'General base (a>0, a≠1)'},
+  {e:'d/dx[a^u] = a^u · ln a · u\'',d:'Chain rule, base a'},
+  {e:'aˣ = e^(x·ln a)',d:'Derivation basis for aˣ rule'}
+],
+explain:`The function eˣ is unique in mathematics: it is the only function (up to constant multiples) equal to its own derivative. This makes it fundamental to modeling growth, decay, oscillations, and much more.
+
+<strong>Deriving d/dx[aˣ]:</strong>
+Write aˣ = e^(x·ln a), then:
+d/dx[e^(x·ln a)] = e^(x·ln a)·ln a = aˣ·ln a ✓
+
+Notice: when a = e, ln e = 1, so d/dx[eˣ] = eˣ·1 = eˣ ✓
+
+<strong>Special values:</strong>
+• d/dx[2ˣ] = 2ˣ·ln 2 ≈ 2ˣ·0.693
+• d/dx[10ˣ] = 10ˣ·ln 10 ≈ 10ˣ·2.303`,
+examples:[
+{p:'Find dy/dx if y = e^(3x²−2)',steps:['u = 3x²−2, u\' = 6x','d/dx[e^u] = e^u·u\'','dy/dx = 6x·e^(3x²−2)'],a:'dy/dx = 6x·e^(3x²−2)'},
+{p:'Differentiate y = x²·e^(−x)',steps:['Product rule: y\' = (x²)\'·e^(−x) + x²·(e^(−x))\'','(x²)\' = 2x, (e^(−x))\' = −e^(−x)','y\' = 2x·e^(−x) − x²·e^(−x) = e^(−x)(2x−x²) = xe^(−x)(2−x)'],a:'y\' = xe^(−x)(2−x)'},
+{p:'Find d/dx[3^(sin x)]',steps:['a^u rule: a=3, u=sin x, u\'=cos x','d/dx = 3^(sin x)·ln 3·cos x'],a:'d/dx = (ln 3)(cos x)·3^(sin x)'}
+],
+mistakes:['d/dx[eˣ] ≠ x·eˣ⁻¹ — DO NOT apply the power rule to eˣ!','d/dx[e^(x²)] = 2x·e^(x²) — must apply chain rule','d/dx[2ˣ] = 2ˣ·ln 2, not just 2ˣ'],
+tricks:['For e^u: derivative = (same function)×(derivative of the exponent)','The only function unchanged by differentiation is Ceˣ','To remember aˣ rule: write aˣ = e^(x ln a), then differentiate — it falls out naturally']
+},
+{id:'hyp-fn',n:4,title:'The Hyperbolic Functions',ic:'∞',color:'#f59e0b',
+desc:'Explore sinh, cosh, tanh and related functions — exponential analogues of trigonometric functions.',
+subs:[{id:'def',t:'Definitions of sinh, cosh'},{id:'other',t:'tanh, coth, sech, csch'},{id:'id',t:'Fundamental Identities'},{id:'graphs',t:'Graphs and Properties'}],
+formulas:[
+  {e:'sinh x = (eˣ − e⁻ˣ)/2',d:'Hyperbolic sine (odd function)'},
+  {e:'cosh x = (eˣ + e⁻ˣ)/2',d:'Hyperbolic cosine (even, ≥1)'},
+  {e:'tanh x = (eˣ−e⁻ˣ)/(eˣ+e⁻ˣ)',d:'Hyperbolic tangent (|tanh x|<1)'},
+  {e:'cosh²x − sinh²x = 1',d:'Fundamental identity'},
+  {e:'1 − tanh²x = sech²x',d:'Derived identity'},
+  {e:'coth²x − 1 = csch²x',d:'Derived identity'},
+  {e:'sinh 2x = 2 sinh x cosh x',d:'Double angle'},
+  {e:'cosh 2x = cosh²x + sinh²x',d:'Double angle'}
+],
+explain:`Hyperbolic functions are analogues of trigonometric functions defined via the exponential. The point (cosh t, sinh t) parametrizes the unit hyperbola x²−y²=1, just as (cos t, sin t) parametrizes the unit circle x²+y²=1.
+
+<strong>Key Properties:</strong>
+• cosh x ≥ 1 for all x (never zero)
+• sinh x is unbounded (range: all reals)
+• tanh x ∈ (−1,1) for all x
+• cosh x is even, sinh x is odd
+
+<strong>Addition Formulas:</strong>
+• sinh(x±y) = sinh x·cosh y ± cosh x·sinh y
+• cosh(x±y) = cosh x·cosh y ± sinh x·sinh y
+
+<strong>Comparison to Trig:</strong> The main structural difference is the minus sign: cosh²x − sinh²x = 1 vs cos²x + sin²x = 1`,
+examples:[
+{p:'Verify cosh²x − sinh²x = 1',steps:['cosh²x − sinh²x = [(eˣ+e⁻ˣ)/2]² − [(eˣ−e⁻ˣ)/2]²','= (e²ˣ+2+e⁻²ˣ)/4 − (e²ˣ−2+e⁻²ˣ)/4','= 4/4 = 1 ✓'],a:'Identity verified ✓'},
+{p:'Show tanh x = (e²ˣ−1)/(e²ˣ+1)',steps:['tanh x = (eˣ−e⁻ˣ)/(eˣ+e⁻ˣ)','Multiply top & bottom by eˣ','= (e²ˣ−1)/(e²ˣ+1) ✓'],a:'tanh x = (e²ˣ−1)/(e²ˣ+1) ✓'}
+],
+mistakes:['The fundamental identity has a MINUS: cosh²x − sinh²x = 1 (not plus!)','cosh x ≥ 1 ALWAYS — it cannot be zero','sinh 0 = 0, cosh 0 = 1 (not both zero)'],
+tricks:['Mnemonic: sinh is ODD (like sin), cosh is EVEN (like cos)','The "+1" rule: trig has sin²+cos²=1, hyperbolic has cosh²−sinh²=1 (shifted by sign)','tanh x is bounded: always between −1 and 1']
+},
+{id:'hyp-diff',n:5,title:'Differentiation of Hyperbolic Functions',ic:'Δ',color:'#f87171',
+desc:'Derivatives of all six hyperbolic functions — closely parallel trig but with an important sign difference.',
+subs:[{id:'basic',t:'Basic Derivatives'},{id:'chain',t:'Chain Rule Applications'},{id:'prod',t:'Products and Quotients'}],
+formulas:[
+  {e:'d/dx[sinh x] = cosh x',d:'POSITIVE (unlike trig: d/dx[sin x]=cos x ✓)'},
+  {e:'d/dx[cosh x] = sinh x',d:'POSITIVE (unlike d/dx[cos x]=−sin x!)'},
+  {e:'d/dx[tanh x] = sech²x',d:'Analogous to d/dx[tan x]=sec²x'},
+  {e:'d/dx[coth x] = −csch²x',d:'Analogous to d/dx[cot x]=−csc²x'},
+  {e:'d/dx[sech x] = −sech x·tanh x',d:'Negative sign'},
+  {e:'d/dx[csch x] = −csch x·coth x',d:'Negative sign'}
+],
+explain:`The derivatives of hyperbolic functions closely parallel those of trig functions, with one critical difference: the derivatives of sinh and cosh are BOTH POSITIVE.
+
+<strong>Derivation of d/dx[sinh x]:</strong>
+d/dx[(eˣ−e⁻ˣ)/2] = (eˣ+e⁻ˣ)/2 = cosh x ✓
+
+<strong>Derivation of d/dx[cosh x]:</strong>
+d/dx[(eˣ+e⁻ˣ)/2] = (eˣ−e⁻ˣ)/2 = sinh x ✓
+
+<strong>The Key Difference from Trig:</strong>
+Trig cycle: sin → cos → −sin → −cos (alternating signs)
+Hyp cycle: sinh → cosh → sinh → cosh (no sign change!)`,
+examples:[
+{p:'Find dy/dx if y = sinh(3x)',steps:['Chain rule: d/dx[sinh(u)] = cosh(u)·u\'','u = 3x, u\' = 3','dy/dx = 3·cosh(3x)'],a:'dy/dx = 3cosh(3x)'},
+{p:'Differentiate y = ln(cosh x)',steps:['Chain rule: d/dx[ln(u)] = u\'/u','d/dx[cosh x] = sinh x','dy/dx = sinh x/cosh x = tanh x'],a:'dy/dx = tanh x'},
+{p:'Find dy/dx if y = sech(x²)',steps:['d/dx[sech(u)] = −sech(u)·tanh(u)·u\'','u = x², u\' = 2x','dy/dx = −2x·sech(x²)·tanh(x²)'],a:'dy/dx = −2x·sech(x²)·tanh(x²)'}
+],
+mistakes:['d/dx[cosh x] = +sinh x (NOT −sinh x)! This is the classic mistake','Always check: is the sign positive (sinh,cosh pair) or negative (the other four)?','Chain rule still applies: d/dx[sinh(f(x))] = cosh(f(x))·f\'(x)'],
+tricks:['The "big two" (sinh, cosh) have positive derivatives in each other','The other four all have negative signs in their derivatives','Memory: sinh⇔cosh cycle without sign change; all others have negative signs']
+},
+{id:'inv-hyp',n:6,title:'Differentiation of Inverse Hyperbolic Functions',ic:'h⁻¹',color:'#c084fc',
+desc:'Derivatives of inverse hyperbolic functions and their logarithmic forms — connected to algebraic expressions.',
+subs:[{id:'is',t:'sinh⁻¹ and cosh⁻¹'},{id:'it',t:'tanh⁻¹ and coth⁻¹'},{id:'isc',t:'sech⁻¹ and csch⁻¹'},{id:'lf',t:'Logarithmic Forms'}],
+formulas:[
+  {e:'d/dx[sinh⁻¹x] = 1/√(x²+1)',d:'All real x; also = d/dx[ln(x+√(x²+1))]'},
+  {e:'d/dx[cosh⁻¹x] = 1/√(x²−1)',d:'x > 1'},
+  {e:'d/dx[tanh⁻¹x] = 1/(1−x²)',d:'|x| < 1'},
+  {e:'d/dx[coth⁻¹x] = 1/(1−x²)',d:'|x| > 1 (same formula, different domain)'},
+  {e:'d/dx[sech⁻¹x] = −1/(x√(1−x²))',d:'0 < x < 1'},
+  {e:'d/dx[csch⁻¹x] = −1/(|x|√(1+x²))',d:'x ≠ 0'},
+  {e:'sinh⁻¹x = ln(x + √(x²+1))',d:'Logarithmic form'},
+  {e:'tanh⁻¹x = (1/2)·ln((1+x)/(1−x))',d:'Logarithmic form'}
+],
+explain:`Inverse hyperbolic functions can be expressed in terms of logarithms, which provides an alternative way to compute their derivatives.
+
+<strong>Deriving d/dx[sinh⁻¹x]:</strong>
+Using sinh⁻¹x = ln(x + √(x²+1)):
+d/dx = [1 + x/√(x²+1)] / (x+√(x²+1))
+= (√(x²+1)+x) / (√(x²+1)·(x+√(x²+1)))
+= 1/√(x²+1) ✓
+
+<strong>Note on tanh⁻¹ vs coth⁻¹:</strong>
+Both have formula 1/(1−x²) but different domains:
+• tanh⁻¹: |x| < 1 (inside the interval)
+• coth⁻¹: |x| > 1 (outside the interval)`,
+examples:[
+{p:'Find dy/dx if y = sinh⁻¹(3x)',steps:['Chain rule: d/dx[sinh⁻¹(u)] = 1/√(u²+1)·u\'','u = 3x, u\' = 3','dy/dx = 3/√(9x²+1)'],a:'dy/dx = 3/√(9x²+1)'},
+{p:'Differentiate y = tanh⁻¹(x/2)',steps:['u = x/2, u\' = 1/2','d/dx = (1/2)/(1−(x/2)²) = (1/2)·4/(4−x²) = 2/(4−x²)'],a:'dy/dx = 2/(4−x²)'}
+],
+mistakes:['tanh⁻¹ and coth⁻¹ have the SAME formula but different domains — check which applies!','sech⁻¹ has a NEGATIVE sign in its derivative','cosh⁻¹ requires x > 1'],
+tricks:['"+1" vs "−1" in radicand: sinh⁻¹ gives √(x²+1), cosh⁻¹ gives √(x²−1)','When chain rule applies: divide by √((f(x))²±1) and multiply by f\'(x)']
+},
+{id:'diff7',n:7,title:'The Differential',ic:'dy',color:'#22d3ee',
+desc:'Understand dy and dx as quantities that approximate real changes — the foundation of error analysis and approximation.',
+subs:[{id:'def',t:'Definition of dy and dx'},{id:'la',t:'Linear Approximation'},{id:'err',t:'Error Estimation'},{id:'dv',t:'Δy vs dy'}],
+formulas:[
+  {e:'dy = f\'(x)·dx',d:'The differential of y'},
+  {e:'Δy ≈ dy for small Δx = dx',d:'Approximation principle'},
+  {e:'f(x₀+h) ≈ f(x₀) + f\'(x₀)·h',d:'Linear approximation at x₀'},
+  {e:'|Δy − dy| = O(Δx²)',d:'Error is second-order (small!)'}
+],
+explain:`The differential gives us a practical way to approximate how much a function changes when its input changes by a small amount.
+
+<strong>Definition:</strong>
+Given y = f(x), we define dy = f'(x)·dx where dx is any real number (an "independent increment").
+
+<strong>Geometric meaning:</strong>
+• Δy = actual change in y along the CURVE
+• dy = change in y along the TANGENT LINE at the point
+• For small dx, the tangent line closely approximates the curve, so dy ≈ Δy
+
+<strong>Linear Approximation:</strong>
+f(x₀+h) ≈ f(x₀) + f'(x₀)·h for small h
+This is also called the "first-order Taylor approximation."`,
+examples:[
+{p:'Find dy if y = x³−3x',steps:['y\' = 3x²−3','dy = (3x²−3)dx'],a:'dy = (3x²−3)dx'},
+{p:'Approximate ∛(7.97) using differentials',steps:['f(x) = x^(1/3), f\'(x) = (1/3)x^(−2/3)','x₀ = 8, Δx = −0.03; f\'(8) = (1/3)(1/4) = 1/12','f(7.97) ≈ 2 + (1/12)(−0.03) = 2 − 0.0025 = 1.9975'],a:'∛7.97 ≈ 1.9975'},
+{p:'The side s of a cube has error ±0.02 m at s = 5 m. Approximate the error in volume.',steps:['V = s³, dV = 3s²·ds','dV = 3(25)(±0.02) = ±1.5 m³'],a:'Error in V ≈ ±1.5 m³'}
+],
+mistakes:['dy and Δy are NOT equal — only approximately equal for small dx','When dx = 0, dy = 0 trivially — dx must be a nonzero increment','Always specify x₀ — the approximation is only valid near x₀'],
+tricks:['Three steps: (1) identify f(x), (2) choose x₀, (3) compute dy = f\'(x₀)·dx','For percentage error: (dy/y)×100% = (f\'(x)/f(x))·dx·100%']
+},
+{id:'diff-form',n:8,title:'Differential Formulas',ic:'∑d',color:'#fb923c',
+desc:'The complete set of differential formulas — parallel to all derivative rules but in differential notation.',
+subs:[{id:'basic',t:'Basic Differential Rules'},{id:'trig',t:'Trig Differentials'},{id:'explog',t:'Exp/Log Differentials'},{id:'invtrig',t:'Inverse Trig Differentials'}],
+formulas:[
+  {e:'d(c) = 0',d:'Constant'},
+  {e:'d(cu) = c·du',d:'Constant multiple'},
+  {e:'d(u±v) = du ± dv',d:'Sum/difference'},
+  {e:'d(uv) = v·du + u·dv',d:'Product rule'},
+  {e:'d(u/v) = (v·du − u·dv)/v²',d:'Quotient rule'},
+  {e:'d(uⁿ) = n·uⁿ⁻¹·du',d:'Power rule'},
+  {e:'d(eᵘ) = eᵘ·du',d:'Exponential'},
+  {e:'d(aᵘ) = aᵘ·ln a·du',d:'General base exp'},
+  {e:'d(ln u) = du/u',d:'Natural log'},
+  {e:'d(sin u) = cos u·du',d:'Sine'},
+  {e:'d(cos u) = −sin u·du',d:'Cosine'},
+  {e:'d(tan u) = sec²u·du',d:'Tangent'},
+  {e:'d(sin⁻¹u) = du/√(1−u²)',d:'Arcsine'},
+  {e:'d(tan⁻¹u) = du/(1+u²)',d:'Arctangent'},
+  {e:'d(sinh u) = cosh u·du',d:'Hyp sine'},
+  {e:'d(cosh u) = sinh u·du',d:'Hyp cosine'},
+  {e:'d(tanh u) = sech²u·du',d:'Hyp tangent'}
+],
+explain:`Differential formulas directly translate derivative rules into differential notation. The key principle:
+
+If d/dx[f(x)] = g(x), then d[f(u)] = g(u)·du
+
+This works because of the chain rule: d[f(u)] = f'(u)·du = g(u)·du.
+
+<strong>To use a differential formula:</strong>
+1. Identify the outer function form (e.g., sin, ln, power)
+2. Apply the formula with u = (inner expression)
+3. Compute du = (differential of the inner expression)
+4. Multiply everything together
+
+Every differential formula ends with "·du" where u is the argument.`,
+examples:[
+{p:'Find d[√(x²+4)]',steps:['Write as d[(x²+4)^(1/2)]','d(uⁿ) = n·uⁿ⁻¹·du with n=1/2, u=x²+4','d = (1/2)(x²+4)^(−1/2)·d(x²+4)','d(x²+4) = 2x·dx','d = (1/2)(x²+4)^(−1/2)·2x·dx = x·dx/√(x²+4)'],a:'d[√(x²+4)] = x·dx/√(x²+4)'},
+{p:'Find d[e^(x²)·sin x]',steps:['Product rule: d(uv) = v·du + u·dv','du = d(e^(x²)) = e^(x²)·2x·dx, dv = d(sin x) = cos x·dx','d = sin x·2xe^(x²)dx + e^(x²)cos x·dx = e^(x²)(2x sin x + cos x)dx'],a:'d[e^(x²)sin x] = e^(x²)(2x sin x + cos x)dx'}
+],
+mistakes:['d(uⁿ) = n·uⁿ⁻¹·du — must compute du separately!','d(sin x) = cos x·dx, not just cos x','d(uv) is NOT d(u)·d(v) — product rule applies'],
+tricks:['Every formula ends in "·du" — this is the chain rule built in','Think of d as an operator following all the usual algebra rules','The formulas are identical to derivative formulas except everything has "d" in front']
+},
+{id:'apps-diff',n:9,title:'Applications of Differential',ic:'⚙',color:'#4ade80',
+desc:'Use differentials to approximate values, estimate errors, and solve practical measurement problems.',
+subs:[{id:'approx',t:'Approximating Function Values'},{id:'err',t:'Error Propagation'},{id:'rel',t:'Relative and Percentage Error'},{id:'eng',t:'Engineering Applications'}],
+formulas:[
+  {e:'f(x₀+h) ≈ f(x₀) + f\'(x₀)·h',d:'Linear approximation'},
+  {e:'Δy ≈ dy = f\'(x)·dx',d:'Approximate change'},
+  {e:'|dy| = |f\'(x)|·|dx|',d:'Absolute error propagation'},
+  {e:'|dy/y| = |f\'(x)/f(x)|·|dx|',d:'Relative error'},
+  {e:'% error in y = |dy/y|·100%',d:'Percentage error'}
+],
+explain:`Differentials are essential in science and engineering for error analysis. When a measurement has a small error, the differential tells us how that error propagates through calculations.
+
+<strong>Three Types of Error:</strong>
+1. <strong>Absolute Error</strong>: |dy| = |f'(x)|·|dx| — in the same units as y
+2. <strong>Relative Error</strong>: |dy/y| — dimensionless fraction
+3. <strong>Percentage Error</strong>: |dy/y|·100%
+
+<strong>Log Shortcut for Percentage Error:</strong>
+If y = f(x), take ln: ln y = ln f(x)
+Differentiate: dy/y = d(ln y) — this gives relative error directly!
+
+For power functions y = xⁿ:
+dy/y = n·(dx/x) → % error in y = n × % error in x`,
+examples:[
+{p:'Approximate ln(1.04)',steps:['f(x) = ln x, x₀ = 1, Δx = 0.04','f\'(x) = 1/x, f\'(1) = 1','ln(1.04) ≈ 0 + 1·(0.04) = 0.04'],a:'ln(1.04) ≈ 0.04 (actual: 0.03922)'},
+{p:'If r = 5 ± 0.1 cm (radius of circle), find error in area A = πr²',steps:['dA = 2πr·dr = 2π(5)(0.1) = π ≈ 3.14 cm²','Relative error: dA/A = 2dr/r = 2(0.1)/5 = 4%'],a:'Absolute error ≈ ±3.14 cm², relative error = 4%'},
+{p:'A sphere\'s radius is measured with 1% error. What is the % error in volume?',steps:['V = (4/3)πr³ → ln V = const + 3·ln r','dV/V = 3·dr/r','If dr/r = 1%, then dV/V = 3%'],a:'3% error in volume'}
+],
+mistakes:['Evaluate f\'(x) at x₀, not at x₀+Δx','If Δx < 0, dy is negative — the function decreases','% error in V ≠ % error in r — use differential to find the multiplier'],
+tricks:['Power rule for errors: y = xⁿ → % error in y = n × % error in x','ln differentiation gives relative error directly: d(ln y) = dy/y']
+},
+{id:'parametric',n:10,title:'Derivative in Parametric Form',ic:'t→',color:'#60a5fa',
+desc:'Differentiate curves given parametrically as x=x(t), y=y(t) using the chain rule and higher-order formulas.',
+subs:[{id:'first',t:'First Derivative dy/dx'},{id:'second',t:'Second Derivative d²y/dx²'},{id:'slope',t:'Slope and Tangent Lines'},{id:'sp',t:'Special Points'}],
+formulas:[
+  {e:'dy/dx = ẏ/ẋ = (dy/dt)/(dx/dt)',d:'First derivative (ẋ ≠ 0)'},
+  {e:'d²y/dx² = (d/dt[dy/dx])/ẋ',d:'Second derivative'},
+  {e:'d²y/dx² = (ẋÿ − ẏẍ)/ẋ³',d:'Second derivative, expanded'},
+  {e:'Horiz. tangent: ẏ=0, ẋ≠0',d:'When slope = 0'},
+  {e:'Vert. tangent: ẋ=0, ẏ≠0',d:'When slope is undefined'}
+],
+explain:`When a curve is described parametrically as x = f(t), y = g(t), we use the chain rule to find dy/dx.
+
+<strong>Notation:</strong>
+• ẋ = dx/dt, ẏ = dy/dt (first derivatives with respect to t)
+• ẍ = d²x/dt², ÿ = d²y/dt² (second derivatives)
+
+<strong>Second Derivative (IMPORTANT!):</strong>
+d²y/dx² is NOT ÿ/ẍ or ÿ/ẋ!
+We must differentiate dy/dx with respect to x:
+d²y/dx² = d/dx[dy/dx] = (d/dt[ẏ/ẋ])/(dx/dt) = (ẋÿ−ẏẍ)/ẋ³
+
+<strong>Tangent Lines:</strong>
+At parameter t₀, slope = ẏ(t₀)/ẋ(t₀)
+Equation: y − y(t₀) = (ẏ/ẋ)·(x − x(t₀))`,
+examples:[
+{p:'For x=t²−1, y=t³−3t, find dy/dx',steps:['ẋ = 2t, ẏ = 3t²−3','dy/dx = (3t²−3)/(2t) = 3(t²−1)/(2t)'],a:'dy/dx = 3(t²−1)/(2t)'},
+{p:'For x=cos t, y=sin t, find d²y/dx²',steps:['ẋ=−sin t, ẏ=cos t, ẍ=−cos t, ÿ=−sin t','dy/dx = cos t/(−sin t) = −cot t','d²y/dx² = (ẋÿ−ẏẍ)/ẋ³ = (−sin t·(−sin t)−cos t·(−cos t))/(−sin t)³','= (sin²t+cos²t)/(−sin³t) = −csc³t'],a:'d²y/dx² = −csc³t'},
+{p:'Find horizontal tangents for x=t², y=t³−3t',steps:['Horiz: ẏ=0, ẋ≠0','3t²−3=0 → t=±1','t=1: (1,−2); t=−1: (1,2)','ẋ=2t≠0 at t=±1 ✓'],a:'Horizontal tangents at (1,−2) and (1,2)'}
+],
+mistakes:['d²y/dx² ≠ ÿ/ẋ — this is the most common error in parametric!','When ẋ=0: vertical tangent (not undefined slope from nowhere)','Must use formula (ẋÿ−ẏẍ)/ẋ³ for the second derivative'],
+tricks:['Think: dy/dx = (dy/dt)÷(dx/dt) = rate of y ÷ rate of x','For second derivative: find dy/dx as a function of t, then d/dt[dy/dx], then divide by ẋ again','Circle: x=r cos t, y=r sin t → dy/dx = −cot t = −x/y (expected: slope perpendicular to radius)']
+},
+{id:'arc-length',n:11,title:'Differential of Arc Length',ic:'⌒',color:'#2dd4bf',
+desc:'Derive and apply the arc length differential ds in Cartesian, parametric, and polar coordinates.',
+subs:[{id:'cart',t:'Cartesian Arc Length'},{id:'param',t:'Parametric Arc Length'},{id:'polar',t:'Polar Arc Length'},{id:'apps',t:'Applications'}],
+formulas:[
+  {e:'ds = √(dx² + dy²)',d:'Basic arc length element'},
+  {e:'ds = √(1+(dy/dx)²)·dx',d:'For y=f(x)'},
+  {e:'ds = √(1+(dx/dy)²)·dy',d:'For x=g(y)'},
+  {e:'ds = √(ẋ²+ẏ²)·dt',d:'Parametric: x(t),y(t)'},
+  {e:'ds = √(r²+r\'²)·dθ',d:'Polar: r=f(θ)'},
+  {e:'L = ∫ ds',d:'Total arc length'}
+],
+explain:`The arc length differential ds comes directly from the Pythagorean theorem applied to infinitesimal displacements.
+
+<strong>Derivation:</strong>
+For an infinitesimal piece of curve: ds² = dx² + dy²
+ds = √(dx²+dy²) = √(1+(dy/dx)²)·dx (factoring out dx)
+
+<strong>Parametric interpretation:</strong>
+ds = √(ẋ²+ẏ²)·dt = |velocity vector|·dt
+This is the speed × time formula! The arc length is the integral of speed.
+
+<strong>Arc Length Formulas:</strong>
+• Cartesian: L = ∫_a^b √(1+[f'(x)]²) dx
+• Parametric: L = ∫_α^β √(ẋ²+ẏ²) dt
+• Polar: L = ∫_α^β √(r²+r'²) dθ`,
+examples:[
+{p:'Find ds for y = x²',steps:['y\' = 2x','ds = √(1+(y\')²)dx = √(1+4x²)dx'],a:'ds = √(1+4x²)dx'},
+{p:'Find ds for x=3cos t, y=3sin t',steps:['ẋ=−3sin t, ẏ=3cos t','ds = √(9sin²t+9cos²t)dt = √9·dt = 3dt'],a:'ds = 3dt (confirms: arc of circle, constant speed)'},
+{p:'Find arc length of y=(2/3)x^(3/2) from x=0 to x=3',steps:['y\'=x^(1/2), (y\')²=x','L = ∫₀³ √(1+x)dx','Let u=1+x: L = ∫₁⁴ √u du = [2u^(3/2)/3]₁⁴ = 16/3−2/3 = 14/3'],a:'L = 14/3'}
+],
+mistakes:['ds ≠ just dy — must include BOTH dx and dy under the radical','Must SQUARE the derivative: √(1+(y\')²), not √(1+y\')','For parametric: √(ẋ²+ẏ²), not √(ẋ+ẏ) — each term squared separately'],
+tricks:['For a circle r: ds = r·dθ (simplest case in polar)','If 1+(y\')² simplifies to a perfect square, the integral becomes manageable — look for these','ds = |velocity|dt in parametric — physical interpretation is very natural']
+},
+{id:'curvature',n:12,title:'Radius of Curvature',ic:'κ',color:'#f472b6',
+desc:'Measure the bending of curves using curvature κ and the radius of curvature R = 1/κ.',
+subs:[{id:'def',t:'Curvature Definition'},{id:'cart',t:'Cartesian Formula'},{id:'param',t:'Parametric Formula'},{id:'osc',t:'Osculating Circle'},{id:'evo',t:'Center of Curvature'}],
+formulas:[
+  {e:'κ = |y\'\'|/(1+y\'²)^(3/2)',d:'Curvature (y=f(x))'},
+  {e:'R = (1+y\'²)^(3/2)/|y\'\'|',d:'Radius of curvature'},
+  {e:'κ = |ẋÿ−ẏẍ|/(ẋ²+ẏ²)^(3/2)',d:'Parametric curvature'},
+  {e:'R = (ẋ²+ẏ²)^(3/2)/|ẋÿ−ẏẍ|',d:'Parametric radius'},
+  {e:'α = x − y\'(1+y\'²)/y\'\'',d:'Center of curvature x-coord'},
+  {e:'β = y + (1+y\'²)/y\'\'',d:'Center of curvature y-coord'}
+],
+explain:`Curvature κ measures how rapidly a curve is turning. The radius of curvature R = 1/κ is the radius of the "best-fitting circle" (the osculating circle) at that point.
+
+<strong>Intuition:</strong>
+• Straight line: κ=0, R=∞ (no bending)
+• Circle of radius a: κ=1/a, R=a everywhere
+• Tight bend: large κ, small R
+• Gentle bend: small κ, large R
+
+<strong>The Osculating Circle:</strong>
+At each point P on a curve, the osculating circle:
+• Has radius R (the radius of curvature)
+• Has center (α, β) — the "center of curvature"
+• Shares the same tangent AND second derivative as the curve at P
+• Is the best local circular approximation to the curve
+
+<strong>The locus of centers of curvature</strong> as P varies is called the <em>evolute</em> of the curve.`,
+examples:[
+{p:'Find R for y=x² at the origin',steps:['y\'=2x, y\'\'=2','At x=0: y\'=0, y\'\'=2','R = (1+0)^(3/2)/|2| = 1/2'],a:'R = 1/2'},
+{p:'Find κ for y=eˣ at x=0',steps:['y\'=eˣ, y\'\'=eˣ','At x=0: y\'=1, y\'\'=1','κ = 1/(1+1)^(3/2) = 1/(2√2) = √2/4'],a:'κ = √2/4 ≈ 0.354'},
+{p:'Find R for the unit circle x=cos t, y=sin t',steps:['ẋ=−sin t, ẏ=cos t, ẍ=−cos t, ÿ=−sin t','|ẋÿ−ẏẍ| = |(−sin t)(−sin t)−(cos t)(−cos t)| = 1','(ẋ²+ẏ²)^(3/2) = 1^(3/2) = 1','R = 1/1 = 1 ✓'],a:'R = 1 (confirms: unit circle has radius of curvature = 1)'}
+],
+mistakes:['Use |y\'\'| (absolute value) — curvature is always positive','Denominator is (1+y\'²)^(3/2) — power is 3/2, not 2 or 1','d²y/dx² in parametric form ≠ ÿ/ẋ'],
+tricks:['At a local max/min where y\'=0: R = 1/|y\'\'| (simplified formula)','A circle of radius r always has κ=1/r everywhere — sanity check','If y\'=0 at a point (horizontal tangent), the formula simplifies greatly']
+}
+];
+
+// ============================================================
+// PROBLEMS DATA
+// ============================================================
+const PROBS=[
+// ---- Topic 1: Log Differentiation ----
+{id:'p001',tid:'log-diff',d:'easy',q:'Find dy/dx if y = ln(7x)',h:'d/dx[ln u] = u\'/u with u = 7x',
+steps:['u = 7x, so u\' = 7','dy/dx = 7/(7x) = 1/x'],ans:'dy/dx = 1/x'},
+{id:'p002',tid:'log-diff',d:'easy',q:'Differentiate y = ln(x + 5)',h:'u = x+5, u\' = 1',
+steps:['dy/dx = 1/(x+5)'],ans:'dy/dx = 1/(x+5)'},
+{id:'p003',tid:'log-diff',d:'easy',q:'Find f\'(x) if f(x) = ln(x³)',h:'Use ln property: ln(x³) = 3 ln x',
+steps:['ln(x³) = 3·ln x','f\'(x) = 3·(1/x) = 3/x'],ans:'f\'(x) = 3/x'},
+{id:'p004',tid:'log-diff',d:'easy',q:'Differentiate y = 5·ln x',h:'Constant multiple rule',
+steps:['dy/dx = 5·(1/x) = 5/x'],ans:'dy/dx = 5/x'},
+{id:'p005',tid:'log-diff',d:'easy',q:'Find dy/dx if y = ln x + x³',h:'Sum rule — differentiate term by term',
+steps:['dy/dx = 1/x + 3x²'],ans:'dy/dx = 1/x + 3x²'},
+{id:'p006',tid:'log-diff',d:'easy',q:'Find dy/dx if y = ln(2) + ln(x)',h:'ln(2) is a constant, its derivative is 0',
+steps:['d/dx[ln 2] = 0','d/dx[ln x] = 1/x','dy/dx = 1/x'],ans:'dy/dx = 1/x'},
+{id:'p007',tid:'log-diff',d:'medium',q:'Differentiate y = ln(x² + 4)',h:'Chain rule: inner function is x²+4',
+steps:['u = x²+4, u\' = 2x','dy/dx = 2x/(x²+4)'],ans:'dy/dx = 2x/(x²+4)'},
+{id:'p008',tid:'log-diff',d:'medium',q:'Find dy/dx if y = ln(sin x)',h:'Chain rule with inner sin x',
+steps:['u = sin x, u\' = cos x','dy/dx = cos x/sin x = cot x'],ans:'dy/dx = cot x'},
+{id:'p009',tid:'log-diff',d:'medium',q:'Differentiate y = x²·ln x',h:'Product rule required',
+steps:['y\' = (x²)\'·ln x + x²·(ln x)\'','= 2x·ln x + x²·(1/x)','= 2x·ln x + x = x(2 ln x + 1)'],ans:'dy/dx = x(2 ln x + 1)'},
+{id:'p010',tid:'log-diff',d:'medium',q:'Differentiate y = ln(x²·√(x+1))',h:'Expand with log properties first',
+steps:['y = ln(x²) + ln(√(x+1)) = 2·ln x + (1/2)·ln(x+1)','dy/dx = 2/x + 1/(2(x+1))'],ans:'dy/dx = 2/x + 1/(2(x+1))'},
+{id:'p011',tid:'log-diff',d:'medium',q:'Find d/dx[log₁₀(x²+1)]',h:'d/dx[log_a u] = u\'/(u·ln a) with a=10',
+steps:['u = x²+1, u\' = 2x','dy/dx = 2x/((x²+1)·ln 10)'],ans:'dy/dx = 2x/((x²+1)ln 10)'},
+{id:'p012',tid:'log-diff',d:'medium',q:'Find dy/dx if y = ln(tan x)',h:'Chain rule: inner is tan x',
+steps:['u = tan x, u\' = sec²x','dy/dx = sec²x/tan x = (1/cos²x)/(sin x/cos x) = 1/(sin x·cos x) = 2/sin 2x = 2csc 2x'],ans:'dy/dx = 2csc 2x (or sec x·csc x)'},
+{id:'p013',tid:'log-diff',d:'hard',q:'Find dy/dx if y = ln[(x+1)²(x²+3)³]',h:'Expand with log properties first',
+steps:['y = 2·ln(x+1) + 3·ln(x²+3)','dy/dx = 2/(x+1) + 6x/(x²+3)'],ans:'dy/dx = 2/(x+1) + 6x/(x²+3)'},
+{id:'p014',tid:'log-diff',d:'hard',q:'Differentiate y = ln|(x−1)/(x+1)|',h:'Expand: y = ln|x−1| − ln|x+1|',
+steps:['y = ln|x−1| − ln|x+1|','dy/dx = 1/(x−1) − 1/(x+1)','= [(x+1)−(x−1)]/[(x−1)(x+1)] = 2/(x²−1)'],ans:'dy/dx = 2/(x²−1)'},
+{id:'p015',tid:'log-diff',d:'hard',q:'Find d/dx[ln(ln x)]',h:'Double chain rule',
+steps:['outer derivative: 1/ln x','inner derivative: 1/x','d/dx = (1/ln x)·(1/x) = 1/(x·ln x)'],ans:'d/dx[ln(ln x)] = 1/(x·ln x)'},
+{id:'p016',tid:'log-diff',d:'hard',q:'Find the equation of the tangent to y = ln(x²) at x = e',h:'Find y(e) and y\'(e)',
+steps:['y = 2 ln x, y\' = 2/x','y(e) = 2, y\'(e) = 2/e','Tangent: y − 2 = (2/e)(x − e)','y = (2/e)x − 2 + 2 = (2/e)x'],ans:'y = (2/e)x'},
+{id:'p017',tid:'log-diff',d:'hard',q:'Differentiate y = ln(x + √(x²−1))',h:'This is cosh⁻¹x in logarithmic form!',
+steps:['y\' = [1 + x/√(x²−1)]/(x+√(x²−1))','= (√(x²−1)+x)/(√(x²−1)·(x+√(x²−1)))','= 1/√(x²−1)'],ans:'y\' = 1/√(x²−1) — this confirms cosh⁻¹x = ln(x+√(x²−1))'},
+{id:'p018',tid:'log-diff',d:'challenge',q:'Find y\' if y = ln(x + √(x²+1))',h:'Simplify: this is sinh⁻¹x',
+steps:['y\' = [1 + x/√(x²+1)]/(x+√(x²+1))','Multiply: = (√(x²+1)+x)/(√(x²+1)·(x+√(x²+1)))','= 1/√(x²+1)'],ans:'y\' = 1/√(x²+1) — confirms d/dx[sinh⁻¹x] = 1/√(x²+1)'},
+{id:'p019',tid:'log-diff',d:'challenge',q:'Find the critical points of f(x) = x·ln x',h:'Critical point: f\'(x) = 0',
+steps:['f\'(x) = ln x + x·(1/x) = ln x + 1','Set f\'(x)=0: ln x + 1 = 0 → ln x = −1 → x = 1/e'],ans:'Critical point at x = 1/e; f(1/e) = −1/e (minimum)'},
+
+// ---- Topic 2: Logarithmic Differentiation Technique ----
+{id:'p020',tid:'log-technique',d:'easy',q:'Use log differentiation to find dy/dx for y = xˣ',h:'ln y = x·ln x',
+steps:['Take ln: ln y = x·ln x','Diff: (1/y)y\' = ln x + 1','y\' = xˣ(ln x + 1)'],ans:'y\' = xˣ(ln x + 1)'},
+{id:'p021',tid:'log-technique',d:'easy',q:'Find dy/dx for y = x^(1/x)',h:'ln y = (ln x)/x',
+steps:['ln y = (ln x)/x = (1/x)·ln x','(1/y)y\' = (−1/x²)·ln x + (1/x)·(1/x) = (1−ln x)/x²','y\' = x^(1/x)·(1−ln x)/x²'],ans:'y\' = x^(1/x)·(1−ln x)/x²'},
+{id:'p022',tid:'log-technique',d:'medium',q:'Find dy/dx for y = (sin x)^x',h:'ln y = x·ln(sin x)',
+steps:['ln y = x·ln(sin x)','(1/y)y\' = ln(sin x) + x·(cos x/sin x)','y\' = (sin x)^x·[ln(sin x) + x·cot x]'],ans:'y\' = (sin x)^x[ln(sin x) + x·cot x]'},
+{id:'p023',tid:'log-technique',d:'medium',q:'Find dy/dx for y = (x+1)^(x+1)',h:'Similar to xˣ: ln y = (x+1)·ln(x+1)',
+steps:['(1/y)y\' = ln(x+1) + 1','y\' = (x+1)^(x+1)[ln(x+1)+1]'],ans:'y\' = (x+1)^(x+1)[ln(x+1)+1]'},
+{id:'p024',tid:'log-technique',d:'medium',q:'Differentiate y = x^(cos x)',h:'ln y = cos x · ln x',
+steps:['ln y = cos x · ln x','(1/y)y\' = −sin x·ln x + cos x/x','y\' = x^(cos x)·(cos x/x − sin x·ln x)'],ans:'y\' = x^(cos x)·[cos x/x − sin x·ln x]'},
+{id:'p025',tid:'log-technique',d:'hard',q:'Find dy/dx for y = [x(x²+1)^(1/2)]/(x+1)^(2/3)',h:'Take ln and expand all terms',
+steps:['ln y = ln x + (1/2)ln(x²+1) − (2/3)ln(x+1)','(1/y)y\' = 1/x + x/(x²+1) − 2/(3(x+1))','y\' = y·[1/x + x/(x²+1) − 2/(3(x+1))]'],ans:'y\' = y·[1/x + x/(x²+1) − 2/(3(x+1))]'},
+{id:'p026',tid:'log-technique',d:'challenge',q:'Find dy/dx for y = (cos x)^(sin x)',h:'ln y = sin x·ln(cos x)',
+steps:['ln y = sin x·ln(cos x)','(1/y)y\' = cos x·ln(cos x) + sin x·(−sin x/cos x)','= cos x·ln(cos x) − sin²x/cos x','y\' = (cos x)^(sin x)[cos x·ln(cos x) − sin²x/cos x]'],ans:'y\' = (cos x)^(sin x)[cos x·ln(cos x) − sin x·tan x]'},
+
+// ---- Topic 3: Exponential ----
+{id:'p030',tid:'exp-diff',d:'easy',q:'Find dy/dx if y = e^(5x)',h:'d/dx[e^u]=e^u·u\'',
+steps:['u=5x, u\'=5','dy/dx = 5e^(5x)'],ans:'dy/dx = 5e^(5x)'},
+{id:'p031',tid:'exp-diff',d:'easy',q:'Differentiate y = 3ˣ',h:'d/dx[aˣ] = aˣ·ln a',
+steps:['dy/dx = 3ˣ·ln 3'],ans:'dy/dx = 3ˣ·ln 3'},
+{id:'p032',tid:'exp-diff',d:'easy',q:'Find f\'(x) if f(x) = eˣ + 5x²',h:'Sum rule',
+steps:['f\'(x) = eˣ + 10x'],ans:'f\'(x) = eˣ + 10x'},
+{id:'p033',tid:'exp-diff',d:'medium',q:'Differentiate y = e^(x²−3x)',h:'Chain rule: u = x²−3x',
+steps:['u = x²−3x, u\' = 2x−3','dy/dx = (2x−3)e^(x²−3x)'],ans:'dy/dx = (2x−3)e^(x²−3x)'},
+{id:'p034',tid:'exp-diff',d:'medium',q:'Find dy/dx if y = x³·eˣ',h:'Product rule',
+steps:['y\' = 3x²·eˣ + x³·eˣ = eˣ(3x²+x³) = x²eˣ(3+x)'],ans:'dy/dx = x²eˣ(x+3)'},
+{id:'p035',tid:'exp-diff',d:'medium',q:'Differentiate y = e^(sin x)',h:'Chain rule with inner sin x',
+steps:['u = sin x, u\' = cos x','dy/dx = cos x·e^(sin x)'],ans:'dy/dx = cos x·e^(sin x)'},
+{id:'p036',tid:'exp-diff',d:'medium',q:'Differentiate y = 2^(x²)',h:'a^u rule with a=2, u=x²',
+steps:['d/dx[a^u] = a^u·ln a·u\'','u\'=2x','dy/dx = 2^(x²)·ln 2·2x = 2x·ln 2·2^(x²)'],ans:'dy/dx = 2x(ln 2)·2^(x²)'},
+{id:'p037',tid:'exp-diff',d:'hard',q:'Differentiate y = e^(√x)',h:'Chain rule: u = x^(1/2)',
+steps:['u = x^(1/2), u\' = 1/(2√x)','dy/dx = e^(√x)/(2√x)'],ans:'dy/dx = e^(√x)/(2√x)'},
+{id:'p038',tid:'exp-diff',d:'hard',q:'Find dy/dx if y = eˣ·sin x',h:'Product rule',
+steps:['y\' = eˣ·sin x + eˣ·cos x = eˣ(sin x + cos x)'],ans:'y\' = eˣ(sin x + cos x)'},
+{id:'p039',tid:'exp-diff',d:'challenge',q:'Find d/dx[e^(eˣ)]',h:'Double chain rule: outer e^u, inner u=eˣ',
+steps:['u = eˣ, u\' = eˣ','d/dx = e^(eˣ)·eˣ'],ans:'d/dx[e^(eˣ)] = eˣ·e^(eˣ)'},
+
+// ---- Topic 4: Hyperbolic Functions ----
+{id:'p040',tid:'hyp-fn',d:'easy',q:'Compute sinh(0) and cosh(0)',h:'Use exponential definitions',
+steps:['sinh(0) = (e⁰−e⁰)/2 = 0','cosh(0) = (e⁰+e⁰)/2 = 1'],ans:'sinh(0)=0, cosh(0)=1'},
+{id:'p041',tid:'hyp-fn',d:'easy',q:'Show that tanh x = (e²ˣ−1)/(e²ˣ+1)',h:'Multiply (eˣ−e⁻ˣ)/(eˣ+e⁻ˣ) by eˣ/eˣ',
+steps:['tanh x = (eˣ−e⁻ˣ)/(eˣ+e⁻ˣ)','Multiply by eˣ/eˣ: = (e²ˣ−1)/(e²ˣ+1) ✓'],ans:'Verified ✓'},
+{id:'p042',tid:'hyp-fn',d:'medium',q:'Prove: cosh²x − sinh²x = 1',h:'Expand using exponential definitions',
+steps:['[(eˣ+e⁻ˣ)/2]² − [(eˣ−e⁻ˣ)/2]²','= (e²ˣ+2+e⁻²ˣ)/4 − (e²ˣ−2+e⁻²ˣ)/4','= 4/4 = 1 ✓'],ans:'Identity verified ✓'},
+{id:'p043',tid:'hyp-fn',d:'medium',q:'Prove sinh 2x = 2 sinh x cosh x',h:'Use exponential definitions',
+steps:['2·sinh x·cosh x = 2·(eˣ−e⁻ˣ)/2·(eˣ+e⁻ˣ)/2','= (eˣ−e⁻ˣ)(eˣ+e⁻ˣ)/2','= (e²ˣ−e⁻²ˣ)/2 = sinh 2x ✓'],ans:'Verified ✓'},
+{id:'p044',tid:'hyp-fn',d:'hard',q:'Express cosh²x in terms of cosh 2x',h:'Use cosh 2x = 2cosh²x − 1',
+steps:['From cosh 2x = 2cosh²x − 1','cosh²x = (cosh 2x + 1)/2'],ans:'cosh²x = (cosh 2x + 1)/2'},
+
+// ---- Topic 5: Hyperbolic Derivatives ----
+{id:'p050',tid:'hyp-diff',d:'easy',q:'Find dy/dx if y = sinh(4x)',h:'d/dx[sinh u] = cosh u · u\'',
+steps:['u=4x, u\'=4','dy/dx = 4cosh(4x)'],ans:'dy/dx = 4cosh(4x)'},
+{id:'p051',tid:'hyp-diff',d:'easy',q:'Differentiate y = cosh(x²)',h:'Chain rule',
+steps:['u=x², u\'=2x','dy/dx = 2x·sinh(x²)'],ans:'dy/dx = 2x·sinh(x²)'},
+{id:'p052',tid:'hyp-diff',d:'easy',q:'Find d/dx[tanh x] from the definition',h:'Quotient rule on sinh x/cosh x',
+steps:['d/dx[sinh x/cosh x] = (cosh²x−sinh²x)/cosh²x','= 1/cosh²x = sech²x'],ans:'d/dx[tanh x] = sech²x ✓'},
+{id:'p053',tid:'hyp-diff',d:'medium',q:'Differentiate y = x·sinh x',h:'Product rule',
+steps:['y\' = sinh x + x·cosh x'],ans:'y\' = sinh x + x·cosh x'},
+{id:'p054',tid:'hyp-diff',d:'medium',q:'Find dy/dx if y = tanh(3x²+1)',h:'Chain rule',
+steps:['u=3x²+1, u\'=6x','dy/dx = sech²(3x²+1)·6x = 6x·sech²(3x²+1)'],ans:'dy/dx = 6x·sech²(3x²+1)'},
+{id:'p055',tid:'hyp-diff',d:'medium',q:'Differentiate y = ln(cosh x)',h:'Chain rule: outer ln, inner cosh x',
+steps:['d/dx[ln(cosh x)] = sinh x/cosh x = tanh x'],ans:'dy/dx = tanh x'},
+{id:'p056',tid:'hyp-diff',d:'hard',q:'Differentiate y = sech(x²)',h:'d/dx[sech u] = −sech u·tanh u·u\'',
+steps:['u=x², u\'=2x','dy/dx = −sech(x²)·tanh(x²)·2x'],ans:'dy/dx = −2x·sech(x²)·tanh(x²)'},
+{id:'p057',tid:'hyp-diff',d:'hard',q:'Find dy/dx if y = cosh²x − sinh²x',h:'This should simplify nicely!',
+steps:['We know cosh²x−sinh²x = 1','d/dx[1] = 0'],ans:'dy/dx = 0 (it\'s a constant = 1!)'},
+{id:'p058',tid:'hyp-diff',d:'challenge',q:'Prove d/dx[sech x] = −sech x·tanh x',h:'sech x = 1/cosh x; use quotient rule',
+steps:['d/dx[1/cosh x] = −sinh x/cosh²x','= −(1/cosh x)·(sinh x/cosh x)','= −sech x·tanh x ✓'],ans:'Verified ✓'},
+
+// ---- Topic 6: Inverse Hyperbolic ----
+{id:'p060',tid:'inv-hyp',d:'easy',q:'Find dy/dx if y = sinh⁻¹(2x)',h:'d/dx[sinh⁻¹u] = 1/√(u²+1)·u\'',
+steps:['u=2x, u\'=2','dy/dx = 2/√(4x²+1)'],ans:'dy/dx = 2/√(4x²+1)'},
+{id:'p061',tid:'inv-hyp',d:'easy',q:'Find dy/dx if y = tanh⁻¹(x/3)',h:'d/dx[tanh⁻¹u]=1/(1−u²)·u\'',
+steps:['u=x/3, u\'=1/3','dy/dx = (1/3)/(1−x²/9) = 3/(9−x²)'],ans:'dy/dx = 3/(9−x²)'},
+{id:'p062',tid:'inv-hyp',d:'medium',q:'Differentiate y = cosh⁻¹(3x+1)',h:'d/dx[cosh⁻¹u]=1/√(u²−1)·u\'',
+steps:['u=3x+1, u\'=3','dy/dx = 3/√((3x+1)²−1)'],ans:'dy/dx = 3/√((3x+1)²−1)'},
+{id:'p063',tid:'inv-hyp',d:'hard',q:'Find dy/dx for y = x·sinh⁻¹x − √(x²+1)',h:'Product rule + chain rule',
+steps:['d/dx[x·sinh⁻¹x] = sinh⁻¹x + x/√(x²+1)','d/dx[−√(x²+1)] = −x/√(x²+1)','dy/dx = sinh⁻¹x + x/√(x²+1) − x/√(x²+1) = sinh⁻¹x'],ans:'dy/dx = sinh⁻¹x'},
+{id:'p064',tid:'inv-hyp',d:'challenge',q:'Verify: d/dx[ln(x+√(x²+1))] = 1/√(x²+1)',h:'Differentiate the log directly',
+steps:['Let f = x+√(x²+1)','f\' = 1 + x/√(x²+1) = (√(x²+1)+x)/√(x²+1)','d/dx[ln f] = f\'/f = [(√(x²+1)+x)/√(x²+1)] / (x+√(x²+1))','= 1/√(x²+1) ✓'],ans:'Verified: d/dx[sinh⁻¹x] = 1/√(x²+1) ✓'},
+
+// ---- Topic 7: Differential ----
+{id:'p070',tid:'diff7',d:'easy',q:'Find dy if y = 3x² − 2x + 1',h:'dy = y\'·dx',
+steps:['y\' = 6x−2','dy = (6x−2)dx'],ans:'dy = (6x−2)dx'},
+{id:'p071',tid:'diff7',d:'easy',q:'Find dy if y = sin x',h:'dy = y\'·dx',
+steps:['y\' = cos x','dy = cos x · dx'],ans:'dy = cos x · dx'},
+{id:'p072',tid:'diff7',d:'easy',q:'Find dy if y = eˣ',h:'dy = y\'·dx; recall d/dx[eˣ]=eˣ',
+steps:['y\' = eˣ','dy = eˣ·dx'],ans:'dy = eˣ dx'},
+{id:'p073',tid:'diff7',d:'medium',q:'Use differentials to approximate √(8.96)',h:'f(x)=√x, x₀=9, Δx=−0.04',
+steps:['f(x)=√x, f\'(x)=1/(2√x)','f\'(9) = 1/6','√8.96 ≈ 3 + (1/6)(−0.04) = 3 − 0.0067 ≈ 2.9933'],ans:'√8.96 ≈ 2.9933'},
+{id:'p074',tid:'diff7',d:'medium',q:'Find dy if y = ln(x² + 1)',h:'dy = y\'·dx',
+steps:['y\' = 2x/(x²+1)','dy = 2x·dx/(x²+1)'],ans:'dy = 2x·dx/(x²+1)'},
+{id:'p075',tid:'diff7',d:'hard',q:'A cube has side 10 cm. If the side increases by 0.05 cm, approximate the increase in volume.',h:'V = s³, dV = 3s²·ds',
+steps:['dV = 3s²·ds','At s=10, ds=0.05:','dV = 3(100)(0.05) = 15 cm³'],ans:'ΔV ≈ 15 cm³'},
+{id:'p076',tid:'diff7',d:'challenge',q:'T = 2π√(L/g). If L increases by 2%, find % change in T.',h:'ln T = ln(2π) + (1/2)ln L − (1/2)ln g',
+steps:['dT/T = (1/2)·dL/L','If dL/L = 2%, dT/T = 1%'],ans:'T increases by approximately 1%'},
+
+// ---- Topic 8: Differential Formulas ----
+{id:'p080',tid:'diff-form',d:'easy',q:'Find d(x⁴)',h:'d(uⁿ) = n·uⁿ⁻¹·du',
+steps:['d(x⁴) = 4x³·dx'],ans:'d(x⁴) = 4x³dx'},
+{id:'p081',tid:'diff-form',d:'easy',q:'Find d(sin 3x)',h:'d(sin u) = cos u·du; u=3x',
+steps:['u=3x, du=3dx','d(sin 3x) = cos(3x)·3dx = 3cos(3x)dx'],ans:'d(sin 3x) = 3cos(3x)dx'},
+{id:'p082',tid:'diff-form',d:'medium',q:'Find d[ln(x²+1)]',h:'d(ln u) = du/u',
+steps:['u=x²+1, du=2x·dx','d = 2x·dx/(x²+1)'],ans:'d[ln(x²+1)] = 2x·dx/(x²+1)'},
+{id:'p083',tid:'diff-form',d:'medium',q:'Find d[tan⁻¹(2x)]',h:'d(tan⁻¹u) = du/(1+u²)',
+steps:['u=2x, du=2dx','d = 2dx/(1+4x²)'],ans:'d[tan⁻¹(2x)] = 2dx/(1+4x²)'},
+{id:'p084',tid:'diff-form',d:'hard',q:'Find d[x²·eˣ]',h:'Product rule: d(uv) = v·du + u·dv',
+steps:['u=x², v=eˣ','du=2x·dx, dv=eˣ·dx','d = eˣ·2x·dx + x²·eˣ·dx = eˣ(2x+x²)dx = x(x+2)eˣdx'],ans:'d[x²eˣ] = x(x+2)eˣdx'},
+{id:'p085',tid:'diff-form',d:'hard',q:'Find d[√(sin x)]',h:'d(u^(1/2)) = du/(2√u) with u=sin x',
+steps:['u=sin x, du=cos x·dx','d = cos x·dx/(2√(sin x))'],ans:'d[√(sin x)] = cos x·dx/(2√(sin x))'},
+
+// ---- Topic 9: Applications ----
+{id:'p090',tid:'apps-diff',d:'easy',q:'Approximate (1.02)⁵ using differentials',h:'f(x)=x⁵, x₀=1, Δx=0.02',
+steps:['f\'(x)=5x⁴, f\'(1)=5','f(1.02) ≈ 1 + 5·(0.02) = 1.10'],ans:'(1.02)⁵ ≈ 1.10 (actual: 1.1041)'},
+{id:'p091',tid:'apps-diff',d:'easy',q:'Approximate ln(1.05)',h:'f(x)=ln x, x₀=1, Δx=0.05',
+steps:['f\'(x)=1/x, f\'(1)=1','ln(1.05) ≈ 0 + 1·(0.05) = 0.05'],ans:'ln(1.05) ≈ 0.05 (actual: 0.04879)'},
+{id:'p092',tid:'apps-diff',d:'medium',q:'The area A=πr². If r=5±0.1 cm, find error in A.',h:'dA = 2πr·dr',
+steps:['dA = 2π(5)(0.1) = π ≈ 3.14 cm²','Relative error: dA/A = 2dr/r = 4%'],ans:'Absolute error ≈ ±3.14 cm², relative error ≈ 4%'},
+{id:'p093',tid:'apps-diff',d:'hard',q:'Diameter of sphere measured as 20 cm ± 0.1 cm. Find error in volume.',h:'V = πd³/6, dV = πd²/2·dd',
+steps:['dV = πd²/2·dd = π(400)/2·(0.1) = 20π ≈ 62.8 cm³','Relative: dV/V = 3dd/d = 0.015 = 1.5%'],ans:'Error ≈ ±62.8 cm³ (1.5% relative error)'},
+{id:'p094',tid:'apps-diff',d:'challenge',q:'If V = (4/3)πr³ and r has a 2% error, find % error in V.',h:'dV/V = 3dr/r',
+steps:['ln V = ln(4π/3) + 3·ln r','dV/V = 3·dr/r = 3·(2%) = 6%'],ans:'6% error in volume'},
+
+// ---- Topic 10: Parametric ----
+{id:'p100',tid:'parametric',d:'easy',q:'Find dy/dx for x=t², y=t³ at t=2',h:'dy/dx = ẏ/ẋ',
+steps:['ẋ=2t, ẏ=3t²','dy/dx = 3t/2','At t=2: dy/dx = 3'],ans:'dy/dx = 3 at t=2'},
+{id:'p101',tid:'parametric',d:'easy',q:'For x=cos t, y=sin t, find dy/dx',h:'Parametric circle',
+steps:['ẋ=−sin t, ẏ=cos t','dy/dx = cos t/(−sin t) = −cot t'],ans:'dy/dx = −cot t'},
+{id:'p102',tid:'parametric',d:'medium',q:'For x=t, y=t², find d²y/dx²',h:'First find dy/dx, then differentiate again',
+steps:['dy/dx = ẏ/ẋ = 2t/1 = 2t','d/dt[dy/dx] = 2','d²y/dx² = 2/ẋ = 2/1 = 2'],ans:'d²y/dx² = 2 (constant — curve is a parabola)'},
+{id:'p103',tid:'parametric',d:'medium',q:'Find the slope of x=eᵗ, y=e^(2t) at t=0',h:'dy/dx = ẏ/ẋ',
+steps:['ẋ=eᵗ, ẏ=2e^(2t)','dy/dx = 2e^(2t)/eᵗ = 2eᵗ','At t=0: dy/dx = 2'],ans:'Slope = 2 at t=0'},
+{id:'p104',tid:'parametric',d:'hard',q:'For x=t²−1, y=t³−3t, find horizontal tangent points',h:'Horizontal: ẏ=0, ẋ≠0',
+steps:['ẏ = 3t²−3=0 → t=±1','t=1: (x,y)=(0,−2); t=−1: (x,y)=(0,2)','ẋ=2t≠0 at t=±1 ✓'],ans:'Horizontal tangents at (0,−2) and (0,2)'},
+{id:'p105',tid:'parametric',d:'challenge',q:'For x=cos t, y=sin t, verify d²y/dx² = −csc³t',h:'Use d²y/dx² = (ẋÿ−ẏẍ)/ẋ³',
+steps:['ẋ=−sin t, ẏ=cos t, ẍ=−cos t, ÿ=−sin t','Num: (−sin t)(−sin t)−(cos t)(−cos t) = sin²t+cos²t = 1','Den: (−sin t)³ = −sin³t','d²y/dx² = 1/(−sin³t) = −csc³t ✓'],ans:'Verified: d²y/dx² = −csc³t ✓'},
+
+// ---- Topic 11: Arc Length ----
+{id:'p110',tid:'arc-length',d:'easy',q:'Find ds for y = 3x+2',h:'y\'=3; ds=√(1+9)dx',
+steps:['y\'=3','ds=√(1+9)dx = √10 dx'],ans:'ds = √10 dx'},
+{id:'p111',tid:'arc-length',d:'easy',q:'Find ds for x=2t, y=t²',h:'ds=√(ẋ²+ẏ²)dt',
+steps:['ẋ=2, ẏ=2t','ds=√(4+4t²)dt = 2√(1+t²)dt'],ans:'ds = 2√(1+t²) dt'},
+{id:'p112',tid:'arc-length',d:'medium',q:'Set up arc length integral for y=x²/2 from x=0 to x=2',h:'y\'=x, so 1+(y\')²=1+x²',
+steps:['y\'=x','L = ∫₀² √(1+x²) dx (integral requires sinh⁻¹ or trig substitution)'],ans:'L = ∫₀² √(1+x²) dx ≈ 2.957'},
+{id:'p113',tid:'arc-length',d:'hard',q:'Find arc length of y=(2/3)x^(3/2) from x=0 to x=3',h:'y\'=√x; 1+(y\')²=1+x',
+steps:['y\'=x^(1/2), (y\')²=x','L=∫₀³√(1+x)dx','u=1+x: L=∫₁⁴√u du = [2u^(3/2)/3]₁⁴ = 16/3−2/3 = 14/3'],ans:'L = 14/3'},
+{id:'p114',tid:'arc-length',d:'challenge',q:'Find arc length of circle x=r cos t, y=r sin t for one full revolution (0 to 2π)',h:'ds=√(ẋ²+ẏ²)dt',
+steps:['ẋ=−r sin t, ẏ=r cos t','ds=√(r²sin²t+r²cos²t)dt = r·dt','L=∫₀^(2π) r dt = 2πr ✓'],ans:'L = 2πr ✓ (confirms circumference formula)'},
+
+// ---- Topic 12: Curvature ----
+{id:'p120',tid:'curvature',d:'easy',q:'Find κ for y=x (straight line)',h:'y\'=1, y\'\'=0',
+steps:['y\'=1, y\'\'=0','κ = 0/(1+1)^(3/2) = 0'],ans:'κ = 0 (straight line has zero curvature)'},
+{id:'p121',tid:'curvature',d:'easy',q:'Find R for y=x² at the vertex (0,0)',h:'y\'(0)=0, y\'\'(0)=2',
+steps:['y\'=2x, y\'\'=2','At x=0: y\'=0, y\'\'=2','R = (1+0)^(3/2)/2 = 1/2'],ans:'R = 1/2'},
+{id:'p122',tid:'curvature',d:'medium',q:'Find κ for y=eˣ at x=0',h:'y\'(0)=1, y\'\'(0)=1',
+steps:['y\'=eˣ, y\'\'=eˣ','At x=0: both = 1','κ = 1/(1+1)^(3/2) = 1/(2√2) = √2/4'],ans:'κ = √2/4 ≈ 0.354'},
+{id:'p123',tid:'curvature',d:'medium',q:'Find R for y=ln x at x=1',h:'y\'(1)=1, y\'\'(1)=−1',
+steps:['y\'=1/x, y\'\'=−1/x²','At x=1: y\'=1, y\'\'=−1','R = (1+1)^(3/2)/|−1| = 2√2'],ans:'R = 2√2'},
+{id:'p124',tid:'curvature',d:'hard',q:'For x=cos t, y=sin t, find R at any point',h:'Use parametric curvature formula',
+steps:['ẋ=−sin t, ẏ=cos t, ẍ=−cos t, ÿ=−sin t','|ẋÿ−ẏẍ|=|(−sint)(−sint)−(cost)(−cost)|=sin²t+cos²t=1','(ẋ²+ẏ²)^(3/2)=(1)^(3/2)=1','R = 1/1 = 1'],ans:'R = 1 everywhere (confirms unit circle)'},
+{id:'p125',tid:'curvature',d:'challenge',q:'Find the maximum curvature of y=eˣ',h:'Maximize κ = 1/(1+e^(2x))^(3/2)·eˣ by differentiation',
+steps:['κ = eˣ/(1+e^(2x))^(3/2)','Set dκ/dx=0; after computation: maximum at x=−(1/2)ln 2 = −ln√2','κ_max = 2/(3√3) = 2√3/9'],ans:'κ_max = 2√3/9 at x = −½ln 2'}
+];
+
+// ============================================================
+// FLASHCARD DATA
+// ============================================================
+const FLASHCARDS=[
+{id:'fc001',deck:'log-rules',dn:'Log Rules',cat:'Derivative',f:'d/dx[ln x] = ?',b:'1/x',note:'x > 0'},
+{id:'fc002',deck:'log-rules',dn:'Log Rules',cat:'Derivative',f:'d/dx[log_a x] = ?',b:'1/(x·ln a)',note:'a > 0, a ≠ 1'},
+{id:'fc003',deck:'log-rules',dn:'Log Rules',cat:'Chain Rule',f:'d/dx[ln f(x)] = ?',b:'f\'(x) / f(x)',note:'The logarithmic derivative'},
+{id:'fc004',deck:'log-rules',dn:'Log Rules',cat:'Property',f:'ln(xy) = ?',b:'ln x + ln y',note:'Log of product'},
+{id:'fc005',deck:'log-rules',dn:'Log Rules',cat:'Property',f:'ln(xⁿ) = ?',b:'n · ln x',note:'Log of power'},
+{id:'fc006',deck:'exp-rules',dn:'Exp Rules',cat:'Derivative',f:'d/dx[eˣ] = ?',b:'eˣ',note:'The self-derivative function!'},
+{id:'fc007',deck:'exp-rules',dn:'Exp Rules',cat:'Chain Rule',f:'d/dx[e^u] = ?',b:'e^u · u\'',note:'Must apply chain rule'},
+{id:'fc008',deck:'exp-rules',dn:'Exp Rules',cat:'Derivative',f:'d/dx[aˣ] = ?',b:'aˣ · ln a',note:'General base exponential'},
+{id:'fc009',deck:'exp-rules',dn:'Exp Rules',cat:'Derivation',f:'Why d/dx[aˣ] = aˣ·ln a?',b:'Write aˣ = e^(x·ln a) then differentiate',note:'Key insight'},
+{id:'fc010',deck:'hyp-id',dn:'Hyperbolic Identities',cat:'Definition',f:'sinh x = ?',b:'(eˣ − e⁻ˣ) / 2',note:'Odd function'},
+{id:'fc011',deck:'hyp-id',dn:'Hyperbolic Identities',cat:'Definition',f:'cosh x = ?',b:'(eˣ + e⁻ˣ) / 2',note:'Even function, cosh x ≥ 1'},
+{id:'fc012',deck:'hyp-id',dn:'Hyperbolic Identities',cat:'Identity',f:'cosh²x − sinh²x = ?',b:'= 1',note:'Fundamental identity (minus sign!)'},
+{id:'fc013',deck:'hyp-id',dn:'Hyperbolic Identities',cat:'Identity',f:'1 − tanh²x = ?',b:'sech²x',note:'Derived from fundamental identity'},
+{id:'fc014',deck:'hyp-id',dn:'Hyperbolic Identities',cat:'Value',f:'cosh(0) = ?  sinh(0) = ?',b:'cosh(0) = 1,  sinh(0) = 0',note:'Important base values'},
+{id:'fc015',deck:'hyp-id',dn:'Hyperbolic Identities',cat:'Identity',f:'sinh 2x = ?',b:'2 sinh x cosh x',note:'Double angle formula'},
+{id:'fc016',deck:'hyp-deriv',dn:'Hyperbolic Derivatives',cat:'Derivative',f:'d/dx[sinh x] = ?',b:'cosh x',note:'POSITIVE (unlike d/dx[cos x]=-sin x)'},
+{id:'fc017',deck:'hyp-deriv',dn:'Hyperbolic Derivatives',cat:'Derivative',f:'d/dx[cosh x] = ?',b:'sinh x',note:'POSITIVE! Key difference from trig'},
+{id:'fc018',deck:'hyp-deriv',dn:'Hyperbolic Derivatives',cat:'Derivative',f:'d/dx[tanh x] = ?',b:'sech²x',note:'Analogous to d/dx[tan x] = sec²x'},
+{id:'fc019',deck:'hyp-deriv',dn:'Hyperbolic Derivatives',cat:'Derivative',f:'d/dx[sech x] = ?',b:'−sech x · tanh x',note:'Negative sign'},
+{id:'fc020',deck:'hyp-deriv',dn:'Hyperbolic Derivatives',cat:'Derivative',f:'d/dx[csch x] = ?',b:'−csch x · coth x',note:'Negative sign'},
+{id:'fc021',deck:'inv-hyp',dn:'Inverse Hyperbolic',cat:'Derivative',f:'d/dx[sinh⁻¹x] = ?',b:'1 / √(x²+1)',note:'All real x'},
+{id:'fc022',deck:'inv-hyp',dn:'Inverse Hyperbolic',cat:'Derivative',f:'d/dx[cosh⁻¹x] = ?',b:'1 / √(x²−1)',note:'x > 1'},
+{id:'fc023',deck:'inv-hyp',dn:'Inverse Hyperbolic',cat:'Derivative',f:'d/dx[tanh⁻¹x] = ?',b:'1 / (1−x²)',note:'|x| < 1'},
+{id:'fc024',deck:'inv-hyp',dn:'Inverse Hyperbolic',cat:'Log Form',f:'sinh⁻¹x = ?',b:'ln(x + √(x²+1))',note:'All real x'},
+{id:'fc025',deck:'inv-hyp',dn:'Inverse Hyperbolic',cat:'Log Form',f:'tanh⁻¹x = ?',b:'(1/2)·ln((1+x)/(1−x))',note:'|x| < 1'},
+{id:'fc026',deck:'diff-form',dn:'Differential Formulas',cat:'Formula',f:'d(uⁿ) = ?',b:'n·uⁿ⁻¹·du',note:'Power rule in differential form'},
+{id:'fc027',deck:'diff-form',dn:'Differential Formulas',cat:'Formula',f:'d(eᵘ) = ?',b:'eᵘ · du',note:'Exponential differential'},
+{id:'fc028',deck:'diff-form',dn:'Differential Formulas',cat:'Formula',f:'d(ln u) = ?',b:'du / u',note:'Log differential'},
+{id:'fc029',deck:'diff-form',dn:'Differential Formulas',cat:'Formula',f:'d(uv) = ?',b:'v·du + u·dv',note:'Product rule for differentials'},
+{id:'fc030',deck:'diff-form',dn:'Differential Formulas',cat:'Formula',f:'d(sin u) = ?',b:'cos u · du',note:'Sine differential'},
+{id:'fc031',deck:'diff-form',dn:'Differential Formulas',cat:'Formula',f:'d(cos u) = ?',b:'−sin u · du',note:'Cosine differential (negative!)'},
+{id:'fc032',deck:'arc-curv',dn:'Arc Length & Curvature',cat:'Arc Length',f:'ds (for y=f(x))',b:'√(1 + (y\')²) · dx',note:'Cartesian arc element'},
+{id:'fc033',deck:'arc-curv',dn:'Arc Length & Curvature',cat:'Arc Length',f:'ds (parametric)',b:'√(ẋ² + ẏ²) · dt',note:'Parametric arc element = |velocity|dt'},
+{id:'fc034',deck:'arc-curv',dn:'Arc Length & Curvature',cat:'Curvature',f:'κ (curvature, Cartesian)',b:'|y\'\'| / (1 + y\'²)^(3/2)',note:'For y = f(x)'},
+{id:'fc035',deck:'arc-curv',dn:'Arc Length & Curvature',cat:'Curvature',f:'R (radius of curvature)',b:'(1 + y\'²)^(3/2) / |y\'\'|',note:'R = 1/κ'},
+{id:'fc036',deck:'arc-curv',dn:'Arc Length & Curvature',cat:'Parametric',f:'dy/dx (parametric form)',b:'ẏ/ẋ = (dy/dt)/(dx/dt)',note:'First derivative'},
+{id:'fc037',deck:'arc-curv',dn:'Arc Length & Curvature',cat:'Parametric',f:'d²y/dx² (parametric)',b:'(ẋÿ − ẏẍ) / ẋ³',note:'NOT ÿ/ẋ!'},
+{id:'fc038',deck:'log-tech',dn:'Log Differentiation',cat:'Method',f:'y = f(x)^g(x) — how to differentiate?',b:'1) ln y = g·ln f  2) implicit diff  3) solve for y\'  4) substitute y back',note:'Logarithmic differentiation'},
+{id:'fc039',deck:'log-tech',dn:'Log Differentiation',cat:'Result',f:'d/dx[xˣ] = ?',b:'xˣ(ln x + 1)',note:'Use log differentiation'},
+{id:'fc040',deck:'log-tech',dn:'Log Differentiation',cat:'Differential',f:'Definition of differential dy?',b:'dy = f\'(x) · dx',note:'Independent of dx magnitude'}
+];
+
+// ============================================================
+// FORMULA SHEET DATA
+// ============================================================
+const FORMULAS={
+'Logarithmic Derivatives':[
+  {e:'d/dx[ln x] = 1/x',d:'Natural log (x>0)',id:'f001'},
+  {e:'d/dx[ln|x|] = 1/x',d:'For all x ≠ 0',id:'f002'},
+  {e:'d/dx[log_a x] = 1/(x·ln a)',d:'Log base a',id:'f003'},
+  {e:'d/dx[ln f(x)] = f\'(x)/f(x)',d:'Chain rule form',id:'f004'},
+  {e:'d/dx[log_a f(x)] = f\'(x)/[f(x)·ln a]',d:'Chain rule, base a',id:'f005'}
+],
+'Exponential Derivatives':[
+  {e:'d/dx[eˣ] = eˣ',d:'Self-derivative',id:'f006'},
+  {e:'d/dx[e^u] = e^u · u\'',d:'Chain rule',id:'f007'},
+  {e:'d/dx[aˣ] = aˣ · ln a',d:'General base',id:'f008'},
+  {e:'d/dx[a^u] = a^u · ln a · u\'',d:'Chain rule, base a',id:'f009'}
+],
+'Hyperbolic Functions':[
+  {e:'sinh x = (eˣ − e⁻ˣ)/2',d:'Definition',id:'f010'},
+  {e:'cosh x = (eˣ + e⁻ˣ)/2',d:'Definition (even, ≥1)',id:'f011'},
+  {e:'tanh x = sinh x/cosh x',d:'Definition (bounded)',id:'f012'},
+  {e:'cosh²x − sinh²x = 1',d:'Fundamental identity',id:'f013'},
+  {e:'1 − tanh²x = sech²x',d:'Derived identity',id:'f014'},
+  {e:'coth²x − 1 = csch²x',d:'Derived identity',id:'f015'},
+  {e:'sinh 2x = 2 sinh x cosh x',d:'Double angle',id:'f016'},
+  {e:'cosh 2x = cosh²x + sinh²x',d:'Double angle',id:'f017'}
+],
+'Hyperbolic Derivatives':[
+  {e:'d/dx[sinh x] = cosh x',d:'POSITIVE — key difference from trig!',id:'f018'},
+  {e:'d/dx[cosh x] = sinh x',d:'POSITIVE — unlike d/dx[cos x] = -sin x',id:'f019'},
+  {e:'d/dx[tanh x] = sech²x',d:'',id:'f020'},
+  {e:'d/dx[coth x] = −csch²x',d:'',id:'f021'},
+  {e:'d/dx[sech x] = −sech x·tanh x',d:'',id:'f022'},
+  {e:'d/dx[csch x] = −csch x·coth x',d:'',id:'f023'}
+],
+'Inverse Hyperbolic Derivatives':[
+  {e:'d/dx[sinh⁻¹x] = 1/√(x²+1)',d:'All x',id:'f024'},
+  {e:'d/dx[cosh⁻¹x] = 1/√(x²−1)',d:'x>1',id:'f025'},
+  {e:'d/dx[tanh⁻¹x] = 1/(1−x²)',d:'|x|<1',id:'f026'},
+  {e:'d/dx[coth⁻¹x] = 1/(1−x²)',d:'|x|>1',id:'f027'},
+  {e:'d/dx[sech⁻¹x] = −1/(x√(1−x²))',d:'0<x<1',id:'f028'},
+  {e:'d/dx[csch⁻¹x] = −1/(|x|√(1+x²))',d:'x≠0',id:'f029'}
+],
+'Logarithmic Forms of Inv. Hyperbolic':[
+  {e:'sinh⁻¹x = ln(x + √(x²+1))',d:'All real x',id:'f030'},
+  {e:'cosh⁻¹x = ln(x + √(x²−1))',d:'x ≥ 1',id:'f031'},
+  {e:'tanh⁻¹x = (1/2)ln((1+x)/(1−x))',d:'|x|<1',id:'f032'},
+  {e:'coth⁻¹x = (1/2)ln((x+1)/(x−1))',d:'|x|>1',id:'f033'}
+],
+'Differential Formulas':[
+  {e:'dy = f\'(x)·dx',d:'Definition of differential',id:'f034'},
+  {e:'d(c) = 0',d:'Constant',id:'f035'},
+  {e:'d(uⁿ) = n·uⁿ⁻¹·du',d:'Power rule',id:'f036'},
+  {e:'d(uv) = v·du + u·dv',d:'Product rule',id:'f037'},
+  {e:'d(u/v) = (v·du − u·dv)/v²',d:'Quotient rule',id:'f038'},
+  {e:'d(eᵘ) = eᵘ·du',d:'',id:'f039'},
+  {e:'d(aᵘ) = aᵘ·ln a·du',d:'',id:'f040'},
+  {e:'d(ln u) = du/u',d:'',id:'f041'},
+  {e:'d(sin u) = cos u·du',d:'',id:'f042'},
+  {e:'d(cos u) = −sin u·du',d:'',id:'f043'},
+  {e:'d(tan u) = sec²u·du',d:'',id:'f044'},
+  {e:'d(sin⁻¹u) = du/√(1−u²)',d:'',id:'f045'},
+  {e:'d(tan⁻¹u) = du/(1+u²)',d:'',id:'f046'},
+  {e:'d(sinh u) = cosh u·du',d:'',id:'f047'},
+  {e:'d(cosh u) = sinh u·du',d:'',id:'f048'},
+  {e:'d(tanh u) = sech²u·du',d:'',id:'f049'}
+],
+'Arc Length Differentials':[
+  {e:'ds = √(dx² + dy²)',d:'Basic arc element',id:'f050'},
+  {e:'ds = √(1+(dy/dx)²)·dx',d:'Cartesian y=f(x)',id:'f051'},
+  {e:'ds = √(ẋ²+ẏ²)·dt',d:'Parametric x(t),y(t)',id:'f052'},
+  {e:'ds = √(r²+r\'²)·dθ',d:'Polar r=f(θ)',id:'f053'},
+  {e:'L = ∫_a^b √(1+(y\')²) dx',d:'Arc length, Cartesian',id:'f054'},
+  {e:'L = ∫_α^β √(ẋ²+ẏ²) dt',d:'Arc length, parametric',id:'f055'}
+],
+'Radius of Curvature':[
+  {e:'κ = |y\'\'|/(1+y\'²)^(3/2)',d:'Curvature, Cartesian',id:'f056'},
+  {e:'R = (1+y\'²)^(3/2)/|y\'\'|',d:'Radius of curvature',id:'f057'},
+  {e:'κ = |ẋÿ−ẏẍ|/(ẋ²+ẏ²)^(3/2)',d:'Curvature, parametric',id:'f058'},
+  {e:'R = (ẋ²+ẏ²)^(3/2)/|ẋÿ−ẏẍ|',d:'Radius of curvature, parametric',id:'f059'},
+  {e:'α = x − y\'(1+y\'²)/y\'\'',d:'Center of curvature, x',id:'f060'},
+  {e:'β = y + (1+y\'²)/y\'\'',d:'Center of curvature, y',id:'f061'}
+],
+'Parametric Derivatives':[
+  {e:'dy/dx = ẏ/ẋ',d:'First derivative',id:'f062'},
+  {e:'d²y/dx² = (ẋÿ−ẏẍ)/ẋ³',d:'Second derivative',id:'f063'},
+  {e:'Horizontal tangent: ẏ=0, ẋ≠0',d:'',id:'f064'},
+  {e:'Vertical tangent: ẋ=0, ẏ≠0',d:'',id:'f065'}
+]
+};
+
+// ============================================================
+// ACHIEVEMENTS
+// ============================================================
+const ACHIEV=[
+  {id:'first-quiz',ic:'🎯',n:'First Quiz',d:'Complete your first quiz',req:q=>q.quizzes>=1},
+  {id:'streak3',ic:'🔥',n:'On Fire',d:'3-day streak',req:q=>q.streak>=3},
+  {id:'streak7',ic:'💫',n:'Week Warrior',d:'7-day streak',req:q=>q.streak>=7},
+  {id:'xp100',ic:'⚡',n:'XP Boost',d:'Earn 100 XP',req:q=>q.xp>=100},
+  {id:'xp500',ic:'🚀',n:'XP Rocket',d:'Earn 500 XP',req:q=>q.xp>=500},
+  {id:'xp1000',ic:'💎',n:'Diamond',d:'Earn 1000 XP',req:q=>q.xp>=1000},
+  {id:'perfect',ic:'💯',n:'Perfect Score',d:'100% on a quiz',req:q=>q.perfects>=1},
+  {id:'topics3',ic:'📚',n:'Eager Learner',d:'Study 3 different topics',req:q=>(q.studiedTopics||[]).length>=3},
+  {id:'topics12',ic:'🏆',n:'Complete Master',d:'Study all 12 topics',req:q=>(q.studiedTopics||[]).length>=12},
+  {id:'problems10',ic:'✏️',n:'Problem Solver',d:'Attempt 10 problems',req:q=>q.problems>=10},
+  {id:'problems50',ic:'🧮',n:'Math Machine',d:'Attempt 50 problems',req:q=>q.problems>=50},
+  {id:'flashcards20',ic:'🃏',n:'Card Shark',d:'Review 20 flashcards',req:q=>q.cards>=20},
+  {id:'level3',ic:'⭐',n:'Scholar',d:'Reach level 3',req:q=>q.level>=3},
+  {id:'combo5',ic:'🔥',n:'Combo King',d:'5 correct in a row',req:q=>q.maxCombo>=5}
+];
+
+// ============================================================
+// RANKS
+// ============================================================
+const RANKS=[
+  {lvl:1,n:'Beginner Analyst',xp:0},
+  {lvl:2,n:'Formula Apprentice',xp:100},
+  {lvl:3,n:'Derivative Scholar',xp:300},
+  {lvl:4,n:'Calculus Adept',xp:600},
+  {lvl:5,n:'Differential Expert',xp:1000},
+  {lvl:6,n:'Calculus Master',xp:1500},
+  {lvl:7,n:'Grand Differential Sage',xp:2500}
+];
+
+// ============================================================
+// STATE MANAGEMENT
+// ============================================================
+let ST={
+  xp:0,level:1,streak:0,lastStudied:null,
+  quizzes:0,problems:0,cards:0,perfects:0,maxCombo:0,
+  studiedTopics:[],achievements:[],starredFormulas:[],
+  quizHistory:[],fcProgress:{},topicProgress:{},
+  heatmap:{}
+};
+
+function saveState(){try{localStorage.setItem('calcmaster_v2',JSON.stringify(ST));}catch(e){}}
+function loadState(){
+  try{
+    const d=localStorage.getItem('calcmaster_v2');
+    if(d){const p=JSON.parse(d);Object.assign(ST,p);}
+  }catch(e){}
+  checkStreak();
+}
+function checkStreak(){
+  const today=new Date().toDateString();
+  if(!ST.lastStudied){return;}
+  const last=new Date(ST.lastStudied);
+  const diff=Math.floor((new Date()-last)/(1000*60*60*24));
+  if(diff>1)ST.streak=0;
+}
+function markStudied(topicId){
+  ST.lastStudied=new Date().toISOString();
+  if(topicId && !ST.studiedTopics.includes(topicId))ST.studiedTopics.push(topicId);
+  const today=new Date().toDateString();
+  if(!ST.heatmap)ST.heatmap={};
+  ST.heatmap[today]=(ST.heatmap[today]||0)+1;
+  const yesterday=new Date(Date.now()-86400000).toDateString();
+  if(ST.lastStreakDay !== today){
+    if(ST.lastStreakDay === yesterday){ST.streak++;} else if(ST.lastStreakDay !== today){ST.streak=1;}
+    ST.lastStreakDay=today;
+  }
+  saveState();
+  updateSidebar();
+}
+
+function addXP(amount,reason){
+  const oldLvl=ST.level;
+  ST.xp+=amount;
+  const newRank=getRank(ST.xp);
+  ST.level=newRank.lvl;
+  saveState();
+  showXPPop('+'+amount+' XP'+(reason?' ('+reason+')':''));
+  if(ST.level>oldLvl)showLevelUp(newRank.n);
+  updateSidebar();
+  checkAchievements();
+}
+function getRank(xp){
+  for(let i=RANKS.length-1;i>=0;i--){if(xp>=RANKS[i].xp)return RANKS[i];}
+  return RANKS[0];
+}
+function getXPToNext(xp){
+  const cur=getRank(xp);
+  const ni=RANKS.findIndex(r=>r.lvl===cur.lvl)+1;
+  if(ni>=RANKS.length)return{cur:xp,next:xp,pct:100};
+  const next=RANKS[ni];
+  const pct=Math.min(100,Math.round(((xp-cur.xp)/(next.xp-cur.xp))*100));
+  return{cur:xp,next:next.xp,pct};
+}
+function checkAchievements(){
+  let newOnes=[];
+  ACHIEV.forEach(a=>{
+    if(!ST.achievements.includes(a.id)&&a.req(ST)){
+      ST.achievements.push(a.id);newOnes.push(a);
+    }
+  });
+  if(newOnes.length){
+    saveState();
+    newOnes.forEach(a=>toast('🏆 Achievement Unlocked!',a.ic+' '+a.n,'xp2'));
+  }
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+let curView='dashboard';
+let curTopicId=null;
+let curPracticeTopic=null;
+let quizState=null;
+let fcState=null;
+let formulaCat='All';
+
+function nav(view,param){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.querySelectorAll('.mn-item').forEach(n=>n.classList.remove('active'));
+  
+  const v=document.getElementById('view-'+view);
+  if(v)v.classList.add('active');
+  
+  document.querySelectorAll('.nav-item').forEach(n=>{
+    if(n.textContent.toLowerCase().includes(view.toLowerCase().replace('-',' '))||
+       (view==='dashboard'&&n.textContent.includes('Dashboard'))||
+       (view==='topics'&&n.textContent.includes('Topics'))||
+       (view==='practice'&&n.textContent.includes('Practice'))||
+       (view==='quiz'&&n.textContent.includes('Quiz'))||
+       (view==='flashcards'&&n.textContent.includes('Flash'))||
+       (view==='formulas'&&n.textContent.includes('Formula'))||
+       (view==='stats'&&n.textContent.includes('Stats'))){
+      n.classList.add('active');
+    }
+  });
+  document.querySelectorAll('.mn-item').forEach(n=>{
+    const txt=n.textContent.toLowerCase();
+    if((view==='dashboard'&&txt.includes('home'))||(view==='topics'&&txt.includes('topics'))||
+       (view==='quiz'&&txt.includes('quiz'))||(view==='flashcards'&&txt.includes('cards'))||
+       (view==='formulas'&&txt.includes('formula')))n.classList.add('active');
+  });
+  
+  curView=view;
+  
+  if(view==='dashboard')renderDashboard();
+  else if(view==='topics')renderTopics();
+  else if(view==='topic-detail'){curTopicId=param;renderTopicDetail(param);}
+  else if(view==='practice'){curPracticeTopic=param||null;renderPractice(param);}
+  else if(view==='quiz')renderQuizSetup();
+  else if(view==='flashcards')renderFlashcards();
+  else if(view==='formulas')renderFormulas();
+  else if(view==='stats')renderStats();
+  
+  // close mobile sidebar
+  document.getElementById('sb').classList.remove('open');
+  window.scrollTo(0,0);
+}
+
+function toggleSidebar(){document.getElementById('sb').classList.toggle('open');}
+
+// ============================================================
+// SIDEBAR UPDATE
+// ============================================================
+function updateSidebar(){
+  const rank=getRank(ST.xp);
+  const xpn=getXPToNext(ST.xp);
+  document.getElementById('sb-rank').textContent=rank.n;
+  document.getElementById('sb-xpbar').style.width=xpn.pct+'%';
+  document.getElementById('sb-xp-now').textContent=ST.xp+' XP';
+  document.getElementById('sb-xp-next').textContent=xpn.next+' XP';
+  document.getElementById('sb-streak').textContent=ST.streak;
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+function renderDashboard(){
+  const motives=['Ready to master differential calculus? 🚀','Keep going — every problem makes you stronger! 💪','Mathematics is the language of the universe. Speak it fluently! 🌟','Consistency beats intensity. Keep showing up! 🔥','You\'re doing great! One formula at a time. 📐'];
+  document.getElementById('dash-mot').textContent=motives[Math.floor(Math.random()*motives.length)];
+  
+  const stats=[
+    {ic:'⚡',cls:'c',val:ST.xp,lbl:'Total XP'},
+    {ic:'🔥',cls:'y',val:ST.streak,lbl:'Day Streak'},
+    {ic:'✓',cls:'g',val:ST.quizzes,lbl:'Quizzes Done'},
+    {ic:'📚',cls:'p',val:ST.studiedTopics.length+'/12',lbl:'Topics Studied'}
+  ];
+  document.getElementById('dash-stats').innerHTML=stats.map(s=>`
+    <div class="sc"><div class="si ${s.cls}">${s.ic}</div><div><div class="sv">${s.val}</div><div class="sl">${s.lbl}</div></div></div>
+  `).join('');
+  
+  document.getElementById('dash-tgrid').innerHTML=TOPICS.slice(0,6).map(t=>`
+    <div class="tc" style="--tc-color:${t.color}" onclick="nav('topic-detail','${t.id}')">
+      <div class="tc-n">TOPIC ${t.n}</div>
+      <div class="tc-t">${t.title}</div>
+      <div class="tc-p">
+        <div class="tc-pl"><span>Progress</span><span>${ST.topicProgress[t.id]||0}%</span></div>
+        <div class="prog"><div class="prog-f pc" style="width:${ST.topicProgress[t.id]||0}%"></div></div>
+      </div>
+    </div>
+  `).join('');
+  
+  const rank=getRank(ST.xp);
+  const xpn=getXPToNext(ST.xp);
+  document.getElementById('dash-qstats').innerHTML=`
+    <div class="card" style="margin-bottom:12px">
+      <div style="font-size:.75rem;color:var(--primary);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Current Rank</div>
+      <div style="font-size:1.2rem;font-weight:800;margin-bottom:4px">${rank.n}</div>
+      <div style="font-size:.8rem;color:var(--txt-dim);margin-bottom:10px">Level ${rank.lvl} · ${ST.xp} XP</div>
+      <div class="prog"><div class="prog-f pp" style="width:${xpn.pct}%"></div></div>
+      <div style="font-size:.72rem;color:var(--txt-dim);margin-top:4px;display:flex;justify-content:space-between"><span>${ST.xp} XP</span><span>${xpn.next} XP</span></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="card" style="text-align:center;padding:14px">
+        <div style="font-size:1.4rem;font-weight:800">${ST.problems}</div>
+        <div style="font-size:.75rem;color:var(--txt-dim)">Problems Attempted</div>
+      </div>
+      <div class="card" style="text-align:center;padding:14px">
+        <div style="font-size:1.4rem;font-weight:800">${ST.cards}</div>
+        <div style="font-size:.75rem;color:var(--txt-dim)">Cards Reviewed</div>
+      </div>
+    </div>
+  `;
+  
+  const earned=ACHIEV.filter(a=>ST.achievements.includes(a.id)).slice(0,4);
+  document.getElementById('dash-ach').innerHTML=earned.length?earned.map(a=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:1.3rem">${a.ic}</span>
+      <div><div style="font-size:.85rem;font-weight:700">${a.n}</div><div style="font-size:.75rem;color:var(--txt-dim)">${a.d}</div></div>
+    </div>
+  `).join(''):`<div style="color:var(--txt-dim);font-size:.88rem;padding:16px 0;text-align:center">Complete quizzes to earn achievements! 🏆</div>`;
+}
+
+// ============================================================
+// TOPICS VIEW
+// ============================================================
+function renderTopics(){
+  document.getElementById('topics-grid').innerHTML=`
+    <div class="ga">${TOPICS.map(t=>`
+      <div class="tc" style="--tc-color:${t.color}" onclick="nav('topic-detail','${t.id}')">
+        <div class="tc-n">TOPIC ${t.n}</div>
+        <div class="tc-t" style="font-size:.95rem">${t.title}</div>
+        <div style="font-size:.8rem;color:var(--txt-dim);margin:8px 0">${t.desc.substring(0,80)}...</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">${t.subs.slice(0,3).map(s=>`<span style="font-size:.68rem;background:var(--bg3);padding:2px 8px;border-radius:999px;color:var(--txt-dim);border:1px solid var(--border)">${s.t}</span>`).join('')}</div>
+        <div style="margin-top:12px;display:flex;gap:8px;align-items:center;justify-content:space-between">
+          <div style="font-size:.75rem;color:var(--txt-dim)">${PROBS.filter(p=>p.tid===t.id).length} problems</div>
+          <button class="btn btn-p btn-sm" onclick="event.stopPropagation();nav('practice','${t.id}')">Practice →</button>
+        </div>
+        <div class="tc-p" style="margin-top:10px">
+          <div class="tc-pl"><span>Progress</span><span>${ST.topicProgress[t.id]||0}%</span></div>
+          <div class="prog"><div class="prog-f pc" style="width:${ST.topicProgress[t.id]||0}%"></div></div>
+        </div>
+      </div>
+    `).join('')}</div>
+  `;
+}
+
+// ============================================================
+// TOPIC DETAIL VIEW
+// ============================================================
+function renderTopicDetail(tid){
+  const t=TOPICS.find(x=>x.id===tid);
+  if(!t)return;
+  markStudied(tid);
+  
+  const html=`
+    <div class="tdh">
+      <div class="tdh-ic" style="color:${t.color}">${t.ic}</div>
+      <div style="flex:1">
+        <div class="tdh-n">TOPIC ${t.n}</div>
+        <div class="tdh-t">${t.title}</div>
+        <div class="tdh-d">${t.desc}</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
+          <button class="btn btn-p btn-sm" onclick="nav('practice','${t.id}')">✏️ Practice</button>
+          <button class="btn btn-s btn-sm" onclick="startTopicQuiz('${t.id}')">🧠 Quiz This Topic</button>
+          <button class="btn btn-g btn-sm" onclick="nav('flashcards')">🃏 Flashcards</button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="tabs" id="subtabs">
+      <div class="tab active" onclick="showSubtab(this,'overview')">📖 Overview</div>
+      ${t.subs.map(s=>`<div class="tab" onclick="showSubtab(this,'${s.id}')">${s.t}</div>`).join('')}
+      <div class="tab" onclick="showSubtab(this,'problems')">✏️ Problems</div>
+    </div>
+    
+    <div id="subtab-overview">
+      <div class="g2">
+        <div>
+          <div class="cs-t">Explanation</div>
+          <div style="font-size:.9rem;line-height:1.8;color:var(--txt-dim)">${t.explain}</div>
+          
+          <div class="cs-t mt20">Formula Summary</div>
+          <ul class="fl">${t.formulas.map((f,i)=>`
+            <li class="fi">
+              <span class="fn">${i+1}</span>
+              <span class="fe">${f.e}</span>
+              <span class="fd">${f.d}</span>
+            </li>
+          `).join('')}</ul>
+        </div>
+        
+        <div>
+          <div class="cs-t">Worked Examples</div>
+          ${t.examples.map((ex,i)=>`
+            <div class="ex">
+              <div class="ex-lb">📝 Example ${i+1}</div>
+              <div class="ex-p"><strong>Find:</strong> ${ex.p}</div>
+              <ul class="steps">
+                ${ex.steps.map((s,j)=>`<li class="step"><div class="sn">${j+1}</div><div class="sc2">${s}</div></li>`).join('')}
+              </ul>
+              <div class="ans"><span class="ans-lb">Answer</span><span class="ans-v">${ex.a}</span></div>
+            </div>
+          `).join('')}
+          
+          <div class="cs-t mt20">⚠️ Common Mistakes</div>
+          <div style="padding:8px 0">
+            ${t.mistakes.map(m=>`<div class="note nd mt8"><div class="note-lb">Watch Out!</div>${m}</div>`).join('')}
+          </div>
+          
+          <div class="cs-t mt16">💡 Tricks & Shortcuts</div>
+          <div style="padding:8px 0">
+            ${t.tricks.map(tr=>`<div class="note ni mt8"><div class="note-lb">Tip</div>${tr}</div>`).join('')}
+          </div>
+        </div>
+      </div>
+      
+      ${tid==='hyp-fn'||tid==='arc-length'||tid==='curvature'?renderCanvas(tid):''}
+    </div>
+    
+    ${t.subs.map(s=>`
+      <div id="subtab-${s.id}" class="hidden">
+        <h3 style="font-size:1.1rem;font-weight:700;margin-bottom:16px;color:var(--primary)">${s.t}</h3>
+        <div style="color:var(--txt-dim);font-size:.9rem;line-height:1.8">${getSubtopicContent(tid,s.id)}</div>
+        <div class="mt16">
+          ${renderSubtopicProblems(tid,s.id)}
+        </div>
+      </div>
+    `).join('')}
+    
+    <div id="subtab-problems" class="hidden">
+      ${renderInlineProblems(tid)}
+    </div>
+  `;
+  
+  document.getElementById('topic-detail-content').innerHTML=html;
+  
+  // Draw canvases if needed
+  setTimeout(()=>{
+    if(tid==='hyp-fn')drawHypCanvas();
+    else if(tid==='arc-length')drawArcCanvas();
+    else if(tid==='curvature')drawCurvCanvas();
+  },100);
+}
+
+function showSubtab(el,id){
+  document.querySelectorAll('#view-topic-detail .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('[id^="subtab-"]').forEach(d=>d.classList.add('hidden'));
+  const target=document.getElementById('subtab-'+id);
+  if(target)target.classList.remove('hidden');
+}
+
+function getSubtopicContent(tid,sid){
+  const content={
+    'log-diff':{
+      'nl':'<strong>Natural Logarithm Derivatives</strong><br><br>The derivative of ln x is 1/x. This follows from the inverse relationship: if y = ln x, then eʸ = x. Differentiating implicitly: eʸ·y\' = 1, so y\' = 1/eʸ = 1/x.<br><br>The natural log has no defined derivative at x = 0 (it\'s not even defined there). For x > 0: d/dx[ln x] = 1/x.<br><br>For all x ≠ 0: d/dx[ln|x|] = 1/x.',
+      'gl':'<strong>General Logarithm Derivatives</strong><br><br>For a logarithm with any base a > 0, a ≠ 1:<br>d/dx[log_a x] = 1/(x·ln a)<br><br>This follows from the change-of-base formula: log_a x = ln x / ln a.<br>So d/dx[log_a x] = (1/x)/ln a = 1/(x·ln a).<br><br>Special cases: log₂x has derivative 1/(x·ln 2) ≈ 1.443/x; log₁₀x has derivative 1/(x·ln 10) ≈ 0.434/x.',
+      'chain':'<strong>Chain Rule with Logarithms</strong><br><br>When ln is composed with another function: d/dx[ln f(x)] = f\'(x)/f(x)<br><br>This is the most commonly used form. The derivative always gives you "derivative of inside divided by inside".<br><br>Examples:<br>• d/dx[ln(x²+1)] = 2x/(x²+1)<br>• d/dx[ln(eˣ)] = eˣ/eˣ = 1 (makes sense: ln(eˣ) = x)',
+      'comp':'<strong>Composite Logarithmic Functions</strong><br><br>For nested logarithms like ln(ln x):<br>d/dx[ln(ln x)] = (1/ln x)·(1/x) = 1/(x·ln x)<br><br>Always apply chain rule from outside in. For ln(f(g(x))):<br>d/dx = f\'(g(x))·g\'(x)/f(g(x))',
+      'impl':'<strong>Implicit Differentiation with Logs</strong><br><br>When y is defined implicitly and involves ln:<br>d/dx[ln y] = (1/y)·(dy/dx)<br><br>This is the chain rule applied to ln y. Since y is a function of x, we get the 1/y factor.<br><br>This is also the basis for logarithmic differentiation!'
+    }
+  };
+  return (content[tid]&&content[tid][sid])||`<strong>Content for ${sid}:</strong><br><br>This subtopic covers detailed aspects of ${sid.replace(/-/g,' ')}. See the main explanation and examples in the Overview tab for comprehensive content on this topic.<br><br>Practice problems for this subtopic are shown below.`;
+}
+
+function renderSubtopicProblems(tid,sid){
+  const ps=PROBS.filter(p=>p.tid===tid).slice(0,3);
+  if(!ps.length)return '';
+  return `<div class="cs-t">Quick Practice (${sid.replace(/-/g,' ')})</div>
+    <div class="plist">${ps.map((p,i)=>renderProbCard(p,i+1)).join('')}</div>`;
+}
+
+function renderInlineProblems(tid){
+  const ps=PROBS.filter(p=>p.tid===tid);
+  return `<div class="cs-t">All Problems — ${TOPICS.find(t=>t.id===tid)?.title||''}</div>
+    <div class="plist">${ps.map((p,i)=>renderProbCard(p,i+1)).join('')}</div>`;
+}
+
+function renderCanvas(tid){
+  if(tid==='hyp-fn')return `<div class="gcont mt16"><div class="gt">Hyperbolic Functions Graph</div><canvas id="hyp-canvas" height="200"></canvas></div>`;
+  if(tid==='arc-length')return `<div class="gcont mt16"><div class="gt">Arc Length Visualization</div><canvas id="arc-canvas" height="200"></canvas></div>`;
+  if(tid==='curvature')return `<div class="gcont mt16"><div class="gt">Curvature and Osculating Circle</div><canvas id="curv-canvas" height="200"></canvas></div>`;
+  return '';
+}
+
+function drawHypCanvas(){
+  const c=document.getElementById('hyp-canvas');if(!c)return;
+  c.width=c.parentElement.offsetWidth||600;const w=c.width,h=200;
+  const ctx=c.getContext('2d');
+  ctx.fillStyle='#0f1f3a';ctx.fillRect(0,0,w,h);
+  const cx=w/2,cy=h/2,sc=30;
+  ctx.strokeStyle='rgba(255,255,255,0.1)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(0,cy);ctx.lineTo(w,cy);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(cx,0);ctx.lineTo(cx,h);ctx.stroke();
+  const plot=(fn,color)=>{
+    ctx.beginPath();ctx.strokeStyle=color;ctx.lineWidth=2;
+    let first=true;
+    for(let px=0;px<w;px++){
+      const x=(px-cx)/sc;
+      try{
+        const y=fn(x);
+        const py=cy-y*sc;
+        if(isFinite(py)&&Math.abs(y)<5){
+          if(first){ctx.moveTo(px,py);first=false;}else ctx.lineTo(px,py);
+        }else first=true;
+      }catch(e){first=true;}
+    }
+    ctx.stroke();
+  };
+  plot(x=>(Math.exp(x)-Math.exp(-x))/2,'#22d3ee');
+  plot(x=>(Math.exp(x)+Math.exp(-x))/2,'#a78bfa');
+  plot(x=>(Math.exp(x)-Math.exp(-x))/(Math.exp(x)+Math.exp(-x)),'#34d399');
+  ctx.font='11px monospace';
+  ctx.fillStyle='#22d3ee';ctx.fillText('sinh x',cx+5,cy-1.5*sc);
+  ctx.fillStyle='#a78bfa';ctx.fillText('cosh x',cx+5,cy-3*sc);
+  ctx.fillStyle='#34d399';ctx.fillText('tanh x',cx+5,cy-0.8*sc);
+}
+
+function drawArcCanvas(){
+  const c=document.getElementById('arc-canvas');if(!c)return;
+  c.width=c.parentElement.offsetWidth||600;const w=c.width,h=200;
+  const ctx=c.getContext('2d');
+  ctx.fillStyle='#0f1f3a';ctx.fillRect(0,0,w,h);
+  const sx=60,ex=w-60,cy=h-40;
+  const fn=x=>{const t=(x-sx)/(ex-sx)*Math.PI;return cy-80*Math.sin(t)*0.7-20;};
+  ctx.beginPath();ctx.strokeStyle='#a78bfa';ctx.lineWidth=2;
+  ctx.moveTo(sx,fn(sx));
+  for(let x=sx;x<=ex;x++){ctx.lineTo(x,fn(x));}ctx.stroke();
+  ctx.strokeStyle='#22d3ee';ctx.lineWidth=3;
+  const a1=sx+60,a2=sx+160;
+  ctx.beginPath();ctx.moveTo(a1,fn(a1));
+  for(let x=a1;x<=a2;x++)ctx.lineTo(x,fn(x));ctx.stroke();
+  ctx.strokeStyle='rgba(34,211,238,0.3)';ctx.setLineDash([4,4]);
+  ctx.beginPath();ctx.moveTo(a1,fn(a1));ctx.lineTo(a2,fn(a1));ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='#22d3ee';ctx.font='12px monospace';
+  ctx.fillText('ds = √(dx²+dy²)',a1+5,fn(a1)-20);
+  ctx.fillStyle='rgba(34,211,238,0.15)';
+  ctx.beginPath();ctx.moveTo(a1,fn(a1));
+  for(let x=a1;x<=a2;x++)ctx.lineTo(x,fn(x));
+  ctx.lineTo(a2,h);ctx.lineTo(a1,h);ctx.closePath();ctx.fill();
+}
+
+function drawCurvCanvas(){
+  const c=document.getElementById('curv-canvas');if(!c)return;
+  c.width=c.parentElement.offsetWidth||600;const w=c.width,h=200;
+  const ctx=c.getContext('2d');
+  ctx.fillStyle='#0f1f3a';ctx.fillRect(0,0,w,h);
+  const cx2=w/2,base=h-30;
+  ctx.beginPath();ctx.strokeStyle='#a78bfa';ctx.lineWidth=2;
+  for(let px=50;px<w-50;px++){
+    const x=(px-cx2)/60;
+    const y=base-x*x*60*0.3-30;
+    if(px===50)ctx.moveTo(px,y);else ctx.lineTo(px,y);
+  }ctx.stroke();
+  ctx.strokeStyle='rgba(34,211,238,0.5)';ctx.lineWidth=1.5;ctx.setLineDash([4,4]);
+  ctx.beginPath();ctx.arc(cx2,base-30,60,0,2*Math.PI);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='#22d3ee';ctx.beginPath();ctx.arc(cx2,base-30+60,3,0,2*Math.PI);ctx.fill();
+  ctx.fillStyle='#a78bfa';ctx.beginPath();ctx.arc(cx2,base-30,3,0,2*Math.PI);ctx.fill();
+  ctx.fillStyle='rgba(34,211,238,0.4)';
+  ctx.strokeStyle='rgba(34,211,238,0.4)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(cx2,base-30);ctx.lineTo(cx2,base-30+60);ctx.stroke();
+  ctx.fillStyle='#22d3ee';ctx.font='11px monospace';
+  ctx.fillText('R',cx2+5,base-30+30);
+  ctx.fillStyle='#a78bfa';ctx.fillText('y=ax²',cx2+30,base-40);
+  ctx.fillStyle='rgba(34,211,238,0.8)';ctx.fillText('Osculating Circle',cx2-50,base-30+78);
+}
+
+// ============================================================
+// PRACTICE VIEW
+// ============================================================
+let pracFilter='all';
+function renderPractice(tid){
+  let ps=tid?PROBS.filter(p=>p.tid===tid):PROBS;
+  const topic=tid?TOPICS.find(t=>t.id===tid):null;
+  document.getElementById('prac-sub').textContent=topic?`Topic ${topic.n}: ${topic.title}`:'All Topics — Step-by-step solutions included';
+  document.getElementById('prac-back').onclick=tid?()=>nav('topic-detail',tid):()=>nav('topics');
+  pracFilter='all';
+  document.querySelectorAll('.fb').forEach(b=>b.classList.remove('fa','fe2','fm','fh','fc2'));
+  document.querySelector('.fb').classList.add('fa');
+  renderProbList(ps);
+}
+
+function filterP(diff,btn){
+  pracFilter=diff;
+  document.querySelectorAll('.fb').forEach(b=>b.classList.remove('fa','fe2','fm','fh','fc2'));
+  const cls={all:'fa',easy:'fe2',medium:'fm',hard:'fh',challenge:'fc2'}[diff]||'fa';
+  btn.classList.add(cls);
+  let ps=curPracticeTopic?PROBS.filter(p=>p.tid===curPracticeTopic):PROBS;
+  if(diff!=='all')ps=ps.filter(p=>p.d===diff);
+  renderProbList(ps);
+}
+
+function renderProbList(ps){
+  if(!ps.length){
+    document.getElementById('prac-list').innerHTML='<div style="text-align:center;padding:40px;color:var(--txt-dim)">No problems found for this filter. Try a different difficulty!</div>';
+    return;
+  }
+  document.getElementById('prac-list').innerHTML='<div class="plist">'+ps.map((p,i)=>renderProbCard(p,i+1)).join('')+'</div>';
+}
+
+function renderProbCard(p,num){
+  const dclass={easy:'b-easy',medium:'b-medium',hard:'b-hard',challenge:'b-challenge'}[p.d]||'b-easy';
+  return `<div class="pc3" id="pc-${p.id}">
+    <div class="ph3" onclick="toggleProb('${p.id}')">
+      <span class="pn">#${num}</span>
+      <span class="pt2">${p.q} <span class="badge ${dclass}" style="margin-left:6px">${p.d}</span></span>
+      <span class="ptog">▼</span>
+    </div>
+    <div class="pb2">
+      <div style="padding-top:12px">
+        <button class="hint-btn" onclick="toggleHint('${p.id}')">💡 Show Hint</button>
+        <button class="sol-btn" onclick="toggleSol('${p.id}')">📖 Show Solution</button>
+      </div>
+      <div class="hint-body" id="hint-${p.id}">
+        <div class="note ni"><div class="note-lb">Hint</div>${p.h}</div>
+      </div>
+      <div class="sol-body" id="sol-${p.id}">
+        <div class="mt12">
+          <div style="font-size:.8rem;font-weight:700;color:var(--txt-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Step-by-Step Solution</div>
+          <ul class="steps">${p.steps.map((s,i)=>`<li class="step"><div class="sn">${i+1}</div><div class="sc2">${s}</div></li>`).join('')}</ul>
+          <div class="ans mt8"><span class="ans-lb">Answer</span><span class="ans-v">${p.ans}</span></div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function toggleProb(id){
+  const el=document.getElementById('pc-'+id);
+  if(el)el.classList.toggle('open');
+  ST.problems=Math.max(ST.problems,(ST.problems||0));
+  ST.problems++;saveState();checkAchievements();
+}
+function toggleHint(id){
+  const el=document.getElementById('hint-'+id);
+  if(el)el.classList.toggle('show');
+}
+function toggleSol(id){
+  const el=document.getElementById('sol-'+id);
+  if(el){
+    const showing=el.classList.toggle('show');
+    if(showing){addXP(2,'Problem Solved');}
+  }
+}
+
+// ============================================================
+// QUIZ ENGINE
+// ============================================================
+const Q_TIME=45;
+let qTimer=null,qCombo=0;
+
+function renderQuizSetup(){
+  clearInterval(qTimer);
+  const el=document.getElementById('quiz-inner');
+  el.innerHTML=`
+    <div class="qsetup">
+      <div style="font-size:3rem;margin-bottom:12px">🧠</div>
+      <div class="qsetup-t">Quiz Mode</div>
+      <div style="color:var(--txt-dim);font-size:.9rem;margin-bottom:4px">Select a topic and test your knowledge with timed questions</div>
+      <div style="color:var(--txt-dim);font-size:.85rem;margin-bottom:20px">Each correct answer: +15 XP | Combo multiplier applies!</div>
+      
+      <div style="text-align:left;margin-bottom:16px;font-size:.85rem;font-weight:600;color:var(--txt-dim)">Choose Topic:</div>
+      <div class="qtg" id="q-topic-sel">
+        <div class="qtb qs" onclick="selQuizTopic(this,'all')" data-tid="all">📚 All Topics (Mixed)</div>
+        ${TOPICS.map(t=>`<div class="qtb" onclick="selQuizTopic(this,'${t.id}')" data-tid="${t.id}">Topic ${t.n}: ${t.title.split(' ').slice(0,3).join(' ')}...</div>`).join('')}
+      </div>
+      
+      <div style="display:flex;gap:10px;justify-content:center;margin-top:20px;flex-wrap:wrap">
+        <button class="btn btn-p btn-lg" onclick="startQuiz(10)">▶ Quick (10 Q)</button>
+        <button class="btn btn-s btn-lg" onclick="startQuiz(20)">📝 Standard (20 Q)</button>
+      </div>
+    </div>
+  `;
+}
+
+function selQuizTopic(el,tid){
+  document.querySelectorAll('.qtb').forEach(b=>b.classList.remove('qs'));
+  el.classList.add('qs');
+  el.dataset.selected='true';
+}
+function getSelTopic(){
+  const el=document.querySelector('.qtb.qs');
+  return el?el.dataset.tid:'all';
+}
+
+function startTopicQuiz(tid){nav('quiz');setTimeout(()=>{
+  const btn=document.querySelector(`.qtb[data-tid="${tid}"]`);
+  if(btn){document.querySelectorAll('.qtb').forEach(b=>b.classList.remove('qs'));btn.classList.add('qs');}
+  startQuiz(10);
+},100);}
+
+function generateMCQ(prob){
+  const wrongs=[];
+  const allAnswers=PROBS.filter(p=>p.tid===prob.tid&&p.id!==prob.id).map(p=>p.ans);
+  shuffle(allAnswers).slice(0,3).forEach(a=>wrongs.push(a));
+  while(wrongs.length<3){wrongs.push(['dy/dx = 1/x','dy/dx = x','κ=1/2','dy = 2dx'][wrongs.length]||'None of these');}
+  const choices=[prob.ans,...wrongs.slice(0,3)];
+  return shuffle(choices);
+}
+
+function startQuiz(count){
+  const tid=getSelTopic();
+  let pool=tid==='all'?PROBS:PROBS.filter(p=>p.tid===tid);
+  if(!pool.length){toast('No Problems','No problems found for this topic.','info');return;}
+  const qs=shuffle([...pool]).slice(0,Math.min(count,pool.length));
+  qCombo=0;
+  quizState={
+    questions:qs,current:0,score:0,total:qs.length,
+    correct:0,wrong:0,time:Q_TIME,answers:[],startTime:Date.now()
+  };
+  renderQuestion();
+}
+
+function renderQuestion(){
+  if(!quizState||quizState.current>=quizState.total){renderResults();return;}
+  const q=quizState.questions[quizState.current];
+  const choices=generateMCQ(q);
+  const pct=Math.round((quizState.current/quizState.total)*100);
+  quizState.time=Q_TIME;
+  clearInterval(qTimer);
+  qTimer=setInterval(()=>{
+    quizState.time--;
+    const te=document.getElementById('q-time');
+    if(te){
+      te.textContent='⏱ '+quizState.time+'s';
+      te.className='qtimer'+(quizState.time<=10?' dng':quizState.time<=20?' warn':'');
+    }
+    if(quizState.time<=0){clearInterval(qTimer);handleAnswer(null,choices);}
+  },1000);
+  
+  document.getElementById('quiz-inner').innerHTML=`
+    <div class="qpb"><div class="qpbf" style="width:${pct}%"></div></div>
+    <div class="qmeta">
+      <span>Question ${quizState.current+1} / ${quizState.total}</span>
+      <span id="q-time" class="qtimer">⏱ ${quizState.time}s</span>
+      <span style="color:var(--ok)">✓ ${quizState.correct}</span>
+      ${qCombo>=2?`<span style="color:var(--warn)">🔥 ${qCombo}x Combo</span>`:''}
+    </div>
+    <div class="qq">
+      <div class="qq-n">
+        <span class="badge ${({easy:'b-easy',medium:'b-medium',hard:'b-hard',challenge:'b-challenge'}[q.d]||'b-easy')}">${q.d}</span>
+        <span style="margin-left:8px">${TOPICS.find(t=>t.id===q.tid)?.title||''}</span>
+      </div>
+      <div class="qq-t">${q.q}</div>
+    </div>
+    <div class="qcs">
+      ${choices.map((c,i)=>`
+        <button class="qcb" onclick="handleAnswer(this,[${choices.map(x=>`'${x.replace(/'/g,"\\'")}'`).join(',')}],'${q.ans.replace(/'/g,"\\'")}')">
+          <div class="cl">${'ABCD'[i]}</div><span>${c}</span>
+        </button>
+      `).join('')}
+    </div>
+    <div class="qfb" id="q-fb"></div>
+    <div class="qctrl"><button class="btn btn-g" id="q-next-btn" onclick="nextQuestion()" style="display:none">Next →</button></div>
+  `;
+}
+
+function handleAnswer(btn,choices,correct){
+  clearInterval(qTimer);
+  const q=quizState.questions[quizState.current];
+  const correctAns=correct||q.ans;
+  const userAns=btn?btn.querySelector('span').textContent.trim():null;
+  const isCorrect=userAns===correctAns;
+  
+  document.querySelectorAll('.qcb').forEach(b=>{
+    b.disabled=true;
+    const bAns=b.querySelector('span').textContent.trim();
+    if(bAns===correctAns)b.classList.add('correct');
+    else if(b===btn&&!isCorrect)b.classList.add('wrong');
+  });
+  
+  const fb=document.getElementById('q-fb');
+  if(fb){
+    fb.classList.add('show',isCorrect?'correct':'wrong');
+    if(isCorrect){
+      qCombo++;
+      const xpGain=15*Math.min(qCombo,3);
+      quizState.score+=xpGain;quizState.correct++;
+      ST.maxCombo=Math.max(ST.maxCombo,qCombo);
+      fb.innerHTML=`<div class="qfb-h correct">✓ Correct! ${qCombo>=2?'🔥 '+qCombo+'x Combo!':''}</div><div style="font-size:.85rem;color:var(--txt-dim)">+${xpGain} XP earned!</div>`;
+      if(qCombo>=2)showCombo(qCombo+'x Combo!');
+    }else{
+      qCombo=0;quizState.wrong++;
+      fb.innerHTML=`<div class="qfb-h wrong">✗ ${userAns?'Incorrect':'Time Up!'}</div><div style="font-size:.85rem;color:var(--txt-dim);margin-top:4px"><strong>Correct:</strong> ${correctAns}</div><div class="mt8"><strong>Solution:</strong> ${q.steps.slice(0,2).join(' → ')}</div>`;
+    }
+  }
+  quizState.answers.push({correct:isCorrect,xp:isCorrect?15*Math.min(qCombo,1):0});
+  const nb=document.getElementById('q-next-btn');
+  if(nb)nb.style.display='inline-flex';
+}
+
+function nextQuestion(){
+  quizState.current++;
+  if(quizState.current>=quizState.total)renderResults();
+  else renderQuestion();
+}
+
+function renderResults(){
+  clearInterval(qTimer);
+  const pct=Math.round((quizState.correct/quizState.total)*100);
+  const grade=pct>=90?'⭐ Outstanding!':pct>=75?'💪 Great Work!':pct>=60?'📈 Good Progress!':pct>=40?'📚 Keep Studying':'🔄 Review & Retry';
+  const xpEarned=quizState.score||0;
+  
+  ST.quizzes++;
+  if(pct===100)ST.perfects=(ST.perfects||0)+1;
+  addXP(xpEarned,'Quiz Completed');
+  ST.quizHistory=ST.quizHistory||[];
+  ST.quizHistory.unshift({pct,date:new Date().toLocaleDateString(),questions:quizState.total});
+  if(ST.quizHistory.length>20)ST.quizHistory.pop();
+  saveState();checkAchievements();
+  
+  document.getElementById('quiz-inner').innerHTML=`
+    <div class="qres">
+      <div style="font-size:3rem">${pct>=75?'🎉':'📖'}</div>
+      <div class="rs">${pct}%</div>
+      <div class="rg">${grade}</div>
+      <div class="rstats">
+        <div class="rst"><div class="rst-v text-ok">${quizState.correct}</div><div class="rst-l">Correct</div></div>
+        <div class="rst"><div class="rst-v text-d">${quizState.wrong}</div><div class="rst-l">Wrong</div></div>
+        <div class="rst"><div class="rst-v text-p">+${xpEarned}</div><div class="rst-l">XP Earned</div></div>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:20px">
+        <button class="btn btn-p btn-lg" onclick="renderQuizSetup()">▶ New Quiz</button>
+        <button class="btn btn-g btn-lg" onclick="nav('topics')">📚 Study More</button>
+      </div>
+    </div>
+  `;
+}
+
+// ============================================================
+// FLASHCARD ENGINE
+// ============================================================
+function renderFlashcards(){
+  const decks=[...new Set(FLASHCARDS.map(f=>f.deck))];
+  document.getElementById('fc-decks').innerHTML=decks.map(d=>`
+    <button class="fdb${!fcState||fcState.deck!==d?'':' active'}" onclick="loadDeck('${d}')">${FLASHCARDS.find(f=>f.deck===d)?.dn||d}</button>
+  `).join('');
+  if(!fcState){resetFCDisplay();} else updateFCDisplay();
+}
+
+function loadDeck(deckId){
+  const cards=shuffle(FLASHCARDS.filter(f=>f.deck===deckId));
+  fcState={deck:deckId,cards:[...cards],known:[],review:[],idx:0};
+  document.querySelectorAll('.fdb').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.fdb').forEach(b=>{if(b.textContent===FLASHCARDS.find(f=>f.deck===deckId)?.dn)b.classList.add('active');});
+  document.getElementById('fpwrap').classList.remove('flipped');
+  showCard();
+  updateFCCounts();
+}
+
+function showCard(){
+  if(!fcState||!fcState.cards.length){
+    document.getElementById('fc-ftxt').textContent='Deck complete! 🎉';
+    document.getElementById('fc-btxt').textContent='All done!';
+    document.getElementById('fc-ctr').textContent='Complete!';
+    document.getElementById('fc-fcat').textContent='Done';
+    return;
+  }
+  const card=fcState.cards[fcState.idx%fcState.cards.length];
+  document.getElementById('fc-fcat').textContent=card.cat;
+  document.getElementById('fc-ftxt').textContent=card.f;
+  document.getElementById('fc-fnote').textContent='Click to reveal answer';
+  document.getElementById('fc-bcat').textContent='Answer';
+  document.getElementById('fc-btxt').textContent=card.b;
+  document.getElementById('fpwrap').classList.remove('flipped');
+  document.getElementById('fc-ctr').textContent=`Card ${fcState.idx+1} of ${fcState.cards.length}`;
+  updateFCCounts();
+}
+
+function resetFCDisplay(){
+  document.getElementById('fc-fcat').textContent='—';
+  document.getElementById('fc-ftxt').textContent='Choose a deck above to start!';
+  document.getElementById('fc-fnote').textContent='Click to flip';
+  document.getElementById('fc-btxt').textContent='—';
+  document.getElementById('fc-ctr').textContent='Select a deck to begin';
+}
+
+function flipCard(){
+  if(!fcState||!fcState.cards.length)return;
+  document.getElementById('fpwrap').classList.toggle('flipped');
+}
+
+function fcAct(type){
+  if(!fcState||!fcState.cards.length)return;
+  const card=fcState.cards[fcState.idx%fcState.cards.length];
+  if(type==='known'){
+    fcState.known.push(card);
+    fcState.cards.splice(fcState.idx%fcState.cards.length,1);
+    if(fcState.idx>=fcState.cards.length)fcState.idx=0;
+    ST.cards++;addXP(3,'Flashcard Known');
+  }else{
+    fcState.review.push(card);
+    fcState.idx=(fcState.idx+1)%Math.max(1,fcState.cards.length);
+  }
+  if(!fcState.cards.length){
+    document.getElementById('fc-ftxt').textContent='Deck complete! Great work! 🎉';
+    document.getElementById('fc-ctr').textContent='Complete — '+fcState.known.length+' known!';
+    document.querySelectorAll('.fdb').forEach(b=>b.classList.remove('active'));
+    return;
+  }
+  showCard();updateFCCounts();saveState();
+}
+
+function updateFCCounts(){
+  if(!fcState)return;
+  document.getElementById('fc-known').textContent=fcState.known?.length||0;
+  document.getElementById('fc-review').textContent=fcState.review?.length||0;
+  document.getElementById('fc-rem').textContent=fcState.cards?.length||0;
+}
+
+// ============================================================
+// FORMULA SHEET
+// ============================================================
+let fStarred=[];
+function renderFormulas(){
+  fStarred=ST.starredFormulas||[];
+  const cats=['All',...Object.keys(FORMULAS)];
+  document.getElementById('fcats').innerHTML=cats.map(c=>`
+    <button class="fcb${c===formulaCat?' active':''}" onclick="setFCat('${c}',this)">${c}</button>
+  `).join('');
+  renderFormulaContent('');
+}
+
+function setFCat(cat,btn){
+  formulaCat=cat;
+  document.querySelectorAll('.fcb').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderFormulaContent(document.getElementById('fsearch-in').value);
+}
+
+function searchFormulas(q){renderFormulaContent(q);}
+
+function renderFormulaContent(search){
+  const q=(search||'').toLowerCase();
+  let html='';
+  Object.entries(FORMULAS).forEach(([cat,items])=>{
+    if(formulaCat!=='All'&&formulaCat!==cat)return;
+    const filtered=items.filter(f=>
+      !q||(f.e.toLowerCase().includes(q)||f.d.toLowerCase().includes(q)||cat.toLowerCase().includes(q))
+    );
+    if(!filtered.length)return;
+    html+=`<div class="fgroup">
+      <div class="fg-t">${cat}</div>
+      <div class="fgrid">${filtered.map(f=>`
+        <div class="fcard${fStarred.includes(f.id)?' starred':''}" id="fcard-${f.id}">
+          <div class="fe2"><div class="fe2-e">${f.e}</div>${f.d?`<div class="fe2-d">${f.d}</div>`:''}</div>
+          <button class="fstar" onclick="toggleStar('${f.id}')" title="Star">${fStarred.includes(f.id)?'★':'☆'}</button>
+          <button class="fcopy" onclick="copyF('${f.e.replace(/'/g,"\\'")}',this)" title="Copy">copy</button>
+        </div>
+      `).join('')}</div>
+    </div>`;
+  });
+  document.getElementById('formula-content').innerHTML=html||`<div style="text-align:center;padding:40px;color:var(--txt-dim)">No formulas match "${search}"</div>`;
+}
+
+function toggleStar(id){
+  fStarred=ST.starredFormulas||[];
+  const i=fStarred.indexOf(id);
+  if(i>=0)fStarred.splice(i,1);else fStarred.push(id);
+  ST.starredFormulas=fStarred;saveState();
+  const card=document.getElementById('fcard-'+id);
+  if(card){
+    card.classList.toggle('starred');
+    const btn=card.querySelector('.fstar');
+    if(btn)btn.textContent=fStarred.includes(id)?'★':'☆';
+  }
+}
+
+function copyF(expr,btn){
+  navigator.clipboard.writeText(expr).then(()=>{
+    const old=btn.textContent;btn.textContent='✓ Copied!';btn.style.color='var(--ok)';
+    setTimeout(()=>{btn.textContent=old;btn.style.color='';},1500);
+  }).catch(()=>{toast('Formula',expr,'info');});
+}
+
+// ============================================================
+// STATS VIEW
+// ============================================================
+function renderStats(){
+  const rank=getRank(ST.xp);
+  const xpn=getXPToNext(ST.xp);
+  
+  const statsHTML=`
+    <div class="g2" style="margin-bottom:28px">
+      <div class="card">
+        <div style="font-size:.75rem;color:var(--primary);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">Rank Progress</div>
+        <div style="font-size:1.6rem;font-weight:900;margin-bottom:4px">${rank.n}</div>
+        <div style="font-size:.85rem;color:var(--txt-dim);margin-bottom:14px">Level ${rank.lvl} · ${ST.xp} XP total</div>
+        <div class="prog"><div class="prog-f pp" style="width:${xpn.pct}%"></div></div>
+        <div style="font-size:.72rem;color:var(--txt-dim);margin-top:4px;display:flex;justify-content:space-between"><span>${ST.xp} XP</span><span>Next rank: ${xpn.next} XP</span></div>
+        <div style="margin-top:16px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center">
+          ${[{v:ST.quizzes,l:'Quizzes'},{v:ST.problems,l:'Problems'},{v:ST.streak,l:'Streak 🔥'}].map(s=>`
+            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:12px">
+              <div style="font-size:1.3rem;font-weight:800">${s.v}</div>
+              <div style="font-size:.72rem;color:var(--txt-dim)">${s.l}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+      
+      <div class="card">
+        <div style="font-size:.75rem;color:var(--primary);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">Topic Mastery</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          ${TOPICS.slice(0,8).map(t=>`
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:.78rem;color:var(--txt-dim);margin-bottom:3px">
+                <span>${t.title.substring(0,28)}${t.title.length>28?'...':''}</span>
+                <span>${ST.topicProgress[t.id]||0}%</span>
+              </div>
+              <div class="prog" style="height:5px"><div class="prog-f pc" style="width:${ST.topicProgress[t.id]||0}%"></div></div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+    
+    <div class="sec-h mb12"><div class="sec-t">Achievements</div><div style="font-size:.82rem;color:var(--txt-dim)">${ST.achievements.length}/${ACHIEV.length} earned</div></div>
+    <div class="ach-grid mb24">
+      ${ACHIEV.map(a=>`
+        <div class="ach${ST.achievements.includes(a.id)?' earned':''}">
+          <div class="ach-ic">${a.ic}</div>
+          <div class="ach-n">${a.n}</div>
+          <div class="ach-d">${a.d}</div>
+        </div>
+      `).join('')}
+    </div>
+    
+    <div class="sec-h mb12"><div class="sec-t">Activity Heatmap</div></div>
+    <div class="card">
+      <div style="font-size:.8rem;color:var(--txt-dim);margin-bottom:8px">Study activity over the past year</div>
+      <div class="hmap">${generateHeatmap()}</div>
+      <div style="display:flex;gap:6px;align-items:center;margin-top:8px;font-size:.72rem;color:var(--txt-dim)">
+        <span>Less</span>
+        ${['','l1','l2','l3','l4'].map(c=>`<div style="width:10px;height:10px;border-radius:2px;background:${c?'':'var(--bg3)'};" class="hmc ${c}"></div>`).join('')}
+        <span>More</span>
+      </div>
+    </div>
+    
+    ${ST.quizHistory&&ST.quizHistory.length?`
+    <div class="sec-h mt24 mb12"><div class="sec-t">Quiz History</div></div>
+    <div class="card">
+      ${ST.quizHistory.slice(0,10).map(q=>`
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
+          <span style="font-size:.85rem">${q.date}</span>
+          <span style="font-size:.85rem;color:var(--txt-dim)">${q.questions} questions</span>
+          <span class="badge ${q.pct>=75?'b-easy':q.pct>=50?'b-medium':'b-hard'}">${q.pct}%</span>
+        </div>
+      `).join('')}
+    </div>`:''}
+    
+    <div style="display:flex;gap:10px;margin-top:24px;flex-wrap:wrap">
+      <button class="btn btn-g btn-sm" onclick="exportProgress()">📤 Export Progress</button>
+      <button class="btn btn-danger btn-sm" onclick="if(confirm('Reset ALL progress?')){resetProgress();}">⚠️ Reset Progress</button>
+    </div>
+  `;
+  document.getElementById('stats-content').innerHTML=statsHTML;
+}
+
+function generateHeatmap(){
+  let html='';
+  const today=new Date();
+  for(let i=363;i>=0;i--){
+    const d=new Date(today-i*86400000);
+    const key=d.toDateString();
+    const val=ST.heatmap&&ST.heatmap[key]?ST.heatmap[key]:0;
+    const cls=val>=5?'l4':val>=3?'l3':val>=1?'l2':val>0?'l1':'';
+    html+=`<div class="hmc ${cls}" title="${key}: ${val} activities"></div>`;
+  }
+  return html;
+}
+
+function exportProgress(){
+  const data=JSON.stringify(ST,null,2);
+  const blob=new Blob([data],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='calcmaster_progress.json';a.click();
+  toast('Export','Progress exported!','ok2');
+}
+
+function resetProgress(){
+  ST={xp:0,level:1,streak:0,lastStudied:null,quizzes:0,problems:0,cards:0,perfects:0,maxCombo:0,studiedTopics:[],achievements:[],starredFormulas:[],quizHistory:[],fcProgress:{},topicProgress:{},heatmap:{}};
+  saveState();updateSidebar();renderStats();toast('Reset','Progress reset.','info');
+}
+
+// ============================================================
+// DAILY CHALLENGE
+// ============================================================
+function dailyChallenge(){
+  const challenges=PROBS.filter(p=>p.d==='challenge'||p.d==='hard');
+  if(!challenges.length)return;
+  const today=new Date().getDate();
+  const p=challenges[today%challenges.length];
+  const topic=TOPICS.find(t=>t.id===p.tid);
+  
+  document.getElementById('modal-ct').innerHTML=`
+    <div class="mcl" onclick="closeMod()" style="float:right;cursor:pointer">✕</div>
+    <div style="font-size:.72rem;color:var(--gold);font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">⚡ Daily Challenge</div>
+    <div style="font-size:1.2rem;font-weight:800;margin-bottom:4px">Today's Problem</div>
+    <div style="font-size:.8rem;color:var(--txt-dim);margin-bottom:16px">${topic?'Topic '+topic.n+': '+topic.title:''}</div>
+    <div class="fbox" style="text-align:left">${p.q}</div>
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button class="btn btn-g btn-sm" onclick="this.nextElementSibling.style.display='block';this.remove()">💡 Hint</button>
+      <button class="btn btn-p btn-sm" onclick="this.parentElement.nextElementSibling.style.display='block';this.closest('.btn').blur()">Show Solution</button>
+    </div>
+    <div style="display:none"><div class="note ni mt8"><div class="note-lb">Hint</div>${p.h}</div></div>
+    <div style="display:none">
+      <ul class="steps mt12">${p.steps.map((s,i)=>`<li class="step"><div class="sn">${i+1}</div><div class="sc2">${s}</div></li>`).join('')}</ul>
+      <div class="ans mt8"><span class="ans-lb">Answer</span><span class="ans-v">${p.ans}</span></div>
+    </div>
+  `;
+  document.getElementById('moverlay').classList.add('show');
+  addXP(5,'Daily Challenge');
+}
+
+function closeMod(e){
+  if(!e||e.target===document.getElementById('moverlay')||!e.target){
+    document.getElementById('moverlay').classList.remove('show');
+  }
+}
+
+// ============================================================
+// UI HELPERS
+// ============================================================
+function showXPPop(text){
+  const el=document.createElement('div');
+  el.className='combo';
+  el.innerHTML=`<div class="combo-inner">${text}</div>`;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),1000);
+}
+
+function showCombo(text){
+  const el=document.createElement('div');
+  el.className='combo';
+  el.innerHTML=`<div class="combo-inner">🔥 ${text}</div>`;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),900);
+}
+
+function showLevelUp(rank){
+  document.getElementById('lu-rank').textContent=rank;
+  document.getElementById('luo').classList.add('show');
+  confetti();
+}
+function closeLU(){document.getElementById('luo').classList.remove('show');}
+
+function confetti(){
+  const colors=['#22d3ee','#a78bfa','#34d399','#fbbf24','#f87171'];
+  for(let i=0;i<40;i++){
+    const el=document.createElement('div');
+    el.className='conf';
+    el.style.cssText=`left:${Math.random()*100}vw;width:${6+Math.random()*8}px;height:${8+Math.random()*10}px;background:${colors[i%colors.length]};animation-delay:${Math.random()*1}s;animation-duration:${1.5+Math.random()}s`;
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(),3000);
+  }
+}
+
+let toastId=0;
+function toast(title,msg,type='info'){
+  const icons={ok2:'✓',err:'✗',info:'ℹ️',xp2:'⚡'};
+  const id='toast-'+toastId++;
+  const el=document.createElement('div');
+  el.className='toast '+type;el.id=id;
+  el.innerHTML=`<div class="toast-ic">${icons[type]||'ℹ️'}</div><div><div class="toast-t">${title}</div><div class="toast-m">${msg}</div></div>`;
+  document.getElementById('tcon').appendChild(el);
+  setTimeout(()=>{el.classList.add('removing');setTimeout(()=>el.remove(),300);},3500);
+}
+
+function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;}
+
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded',()=>{
+  loadState();
+  updateSidebar();
+  renderDashboard();
+  // Welcome toast
+  setTimeout(()=>{
+    const rank=getRank(ST.xp);
+    toast('Welcome Back! 👋','Level '+rank.lvl+' · '+rank.n+' · '+ST.xp+' XP','info');
+  },500);
+});
+</script>
+</body>
+</html>
